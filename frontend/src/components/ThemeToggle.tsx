@@ -22,7 +22,18 @@ export function ThemeToggle() {
   }
 
   return (
-    <Button variant="outline" size="sm" onClick={toggleTheme} className="gap-2">
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={toggleTheme}
+      className="gap-2"
+      aria-pressed={theme === "dark"}
+      aria-label={
+        theme === "dark"
+          ? "현재 다크 모드, 라이트 모드로 전환"
+          : "현재 라이트 모드, 다크 모드로 전환"
+      }
+    >
       {theme === "dark" ? (
         <>
           <Sun className="w-4 h-4" />
