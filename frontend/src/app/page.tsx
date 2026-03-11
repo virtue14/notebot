@@ -122,7 +122,7 @@ export default function Home() {
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="p-6 bg-card rounded-xl shadow-sm border">
-                <div className="text-3xl mb-3">&#x1F393;</div>
+                <div className="text-3xl mb-3" aria-hidden="true">&#x1F393;</div>
                 <h3 className="font-semibold text-foreground mb-2">
                   학습에 최적화
                 </h3>
@@ -131,7 +131,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="p-6 bg-card rounded-xl shadow-sm border">
-                <div className="text-3xl mb-3">&#x1F319;</div>
+                <div className="text-3xl mb-3" aria-hidden="true">&#x1F319;</div>
                 <h3 className="font-semibold text-foreground mb-2">
                   다크 모드
                 </h3>
@@ -140,7 +140,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="p-6 bg-card rounded-xl shadow-sm border">
-                <div className="text-3xl mb-3">&#x1F4BE;</div>
+                <div className="text-3xl mb-3" aria-hidden="true">&#x1F4BE;</div>
                 <h3 className="font-semibold text-foreground mb-2">
                   로컬 저장
                 </h3>
