@@ -14,11 +14,8 @@ export function useTheme() {
 
   useEffect(() => {
     setMounted(true);
-    const saved = localStorage.getItem("notebot-theme") as
-      | "light"
-      | "dark"
-      | null;
-    const initial = saved ?? "light";
+    const saved = localStorage.getItem("notebot-theme");
+    const initial = saved === "light" || saved === "dark" ? saved : "light";
     setTheme(initial);
     if (initial === "dark") {
       document.documentElement.classList.add("dark");

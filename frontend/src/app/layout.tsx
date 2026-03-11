@@ -32,6 +32,22 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ko" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (() => {
+                try {
+                  const saved = localStorage.getItem("notebot-theme");
+                  if (saved === "dark") {
+                    document.documentElement.classList.add("dark");
+                  }
+                } catch {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
