@@ -11,29 +11,36 @@ interface MarkdownPreviewProps {
   content: string;
 }
 
-/** 간이 마크다운 파서로 헤딩, 리스트, 볼드, 코드블록 등을 렌더링한다. */
+/** 간이 마크다운 파서로 헤딩, 리스트, 볼드, 인용문 등을 렌더링한다. */
 export function MarkdownPreview({ content }: MarkdownPreviewProps) {
   const renderMarkdown = (text: string) => {
     const lines = text.split("\n");
     const elements: React.ReactElement[] = [];
     let listItems: string[] = [];
     let inList = false;
+    let listType: "ul" | "ol" = "ul";
 
     const flushList = () => {
       if (listItems.length > 0) {
+        const ListTag = listType === "ol" ? "ol" : "ul";
+        const listClass =
+          listType === "ol"
+            ? "list-decimal list-inside space-y-1 my-3 ml-4"
+            : "list-disc list-inside space-y-1 my-3 ml-4";
         elements.push(
-          <ul
+          <ListTag
             key={`list-${elements.length}`}
-            className="list-disc list-inside space-y-1 my-3 ml-4"
+            className={listClass}
           >
             {listItems.map((item, i) => (
               <li key={i} className="text-muted-foreground">
                 {item}
               </li>
             ))}
-          </ul>,
+          </ListTag>,
         );
         listItems = [];
+        inList = false;
       }
     };
 
@@ -68,12 +75,16 @@ export function MarkdownPreview({ content }: MarkdownPreviewProps) {
             {trimmed.slice(5)}
           </h4>,
         );
-      } else if (trimmed.startsWith("- ") || /^\d+\.\s/.test(trimmed)) {
+      } else if (trimmed.startsWith("- ")) {
+        if (!inList || listType !== "ul") { flushList(); }
         inList = true;
-        const itemContent = trimmed.startsWith("- ")
-          ? trimmed.slice(2)
-          : trimmed.replace(/^\d+\.\s/, "");
-        listItems.push(itemContent);
+        listType = "ul";
+        listItems.push(trimmed.slice(2));
+      } else if (/^\d+\.\s/.test(trimmed)) {
+        if (!inList || listType !== "ol") { flushList(); }
+        inList = true;
+        listType = "ol";
+        listItems.push(trimmed.replace(/^\d+\.\s/, ""));
       } else if (trimmed.startsWith("> ")) {
         if (inList) { flushList(); inList = false; }
         elements.push(
