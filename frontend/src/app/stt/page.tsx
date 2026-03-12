@@ -64,8 +64,12 @@ export default function SttPage() {
   };
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(result);
-    toast.success("클립보드에 복사되었습니다.");
+    try {
+      await navigator.clipboard.writeText(result);
+      toast.success("클립보드에 복사되었습니다.");
+    } catch {
+      toast.error("클립보드 복사에 실패했습니다.");
+    }
   };
 
   const handleDownload = () => {
