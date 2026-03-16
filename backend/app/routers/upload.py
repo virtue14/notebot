@@ -14,6 +14,7 @@ router = APIRouter(prefix="/api/v1/upload", tags=["upload"])
 
 
 def _is_allowed_mime(mime_type: str) -> bool:
+    """MIME 타입이 허용 목록에 포함되는지 와일드카드 패턴으로 검사한다."""
     return any(
         fnmatch.fnmatch(mime_type, pattern)
         for pattern in settings.ALLOWED_MIME_TYPES
@@ -22,6 +23,7 @@ def _is_allowed_mime(mime_type: str) -> bool:
 
 @router.post("/", response_model=UploadResponse)
 async def upload_file(file: UploadFile, db: Session = Depends(get_db)):
+    """파일을 업로드하고 메타데이터를 DB에 저장한다."""
     if not file.content_type or not _is_allowed_mime(file.content_type):
         raise HTTPException(
             status_code=400,
@@ -53,7 +55,7 @@ async def upload_file(file: UploadFile, db: Session = Depends(get_db)):
     file_path.write_bytes(content)
 
     upload = Upload(
-        file_name=file.filename,
+        file_name=original_filename,
         file_path=str(file_path),
         file_size=len(content),
         mime_type=file.content_type,
@@ -68,6 +70,7 @@ async def upload_file(file: UploadFile, db: Session = Depends(get_db)):
 
 @router.get("/{file_id}", response_model=UploadStatusResponse)
 def get_upload_status(file_id: str, db: Session = Depends(get_db)):
+    """업로드 ID로 변환 상태와 결과를 조회한다."""
     upload = (
         db.query(Upload)
         .options(joinedload(Upload.stt_results), joinedload(Upload.ai_summaries))

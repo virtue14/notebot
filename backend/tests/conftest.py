@@ -13,6 +13,7 @@ from app.main import app
 
 @pytest.fixture()
 def db_session(tmp_path: Path) -> Generator[Session, None, None]:
+    """테스트용 임시 SQLite DB 세션을 생성한다."""
     db_url = f"sqlite:///{tmp_path / 'test.db'}"
     engine = create_engine(db_url, connect_args={"check_same_thread": False})
 
@@ -34,6 +35,7 @@ def db_session(tmp_path: Path) -> Generator[Session, None, None]:
 
 @pytest.fixture()
 def client(db_session: Session, tmp_path: Path) -> Generator[TestClient, None, None]:
+    """테스트용 FastAPI TestClient를 생성한다."""
     upload_dir = tmp_path / "uploads"
     upload_dir.mkdir()
 
