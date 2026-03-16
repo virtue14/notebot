@@ -1,5 +1,5 @@
-import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -12,8 +12,10 @@ from app.routers import health
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    os.makedirs("data", exist_ok=True)
-    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    Path(settings.UPLOAD_DIR).mkdir(parents=True, exist_ok=True)
+    if settings.DATABASE_URL.startswith("sqlite:///"):
+        db_path = Path(settings.DATABASE_URL.removeprefix("sqlite:///"))
+        db_path.parent.mkdir(parents=True, exist_ok=True)
     Base.metadata.create_all(bind=engine)
     yield
 
