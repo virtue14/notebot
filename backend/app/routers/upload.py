@@ -28,19 +28,27 @@ async def upload_file(file: UploadFile, db: Session = Depends(get_db)):
             detail=f"허용되지 않는 파일 타입입니다: {file.content_type}",
         )
 
-    content = await file.read()
+    chunks = []
+    total_size = 0
+    chunk_size = 1024 * 1024  # 1MB
 
-    if len(content) > settings.MAX_UPLOAD_SIZE:
-        raise HTTPException(
-            status_code=400,
-            detail=f"파일 크기가 {settings.MAX_UPLOAD_SIZE // (1024 * 1024)}MB를 초과합니다.",
-        )
+    while chunk := await file.read(chunk_size):
+        total_size += len(chunk)
+        if total_size > settings.MAX_UPLOAD_SIZE:
+            raise HTTPException(
+                status_code=400,
+                detail=f"파일 크기가 {settings.MAX_UPLOAD_SIZE // (1024 * 1024)}MB를 초과합니다.",
+            )
+        chunks.append(chunk)
+
+    content = b"".join(chunks)
 
     upload_dir = Path(settings.UPLOAD_DIR)
     upload_dir.mkdir(parents=True, exist_ok=True)
 
     file_uuid = uuid.uuid4()
-    saved_name = f"{file_uuid}_{file.filename}"
+    original_filename = file.filename or "unnamed"
+    saved_name = f"{file_uuid}_{original_filename}"
     file_path = upload_dir / saved_name
     file_path.write_bytes(content)
 
