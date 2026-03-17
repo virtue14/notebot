@@ -21,10 +21,10 @@ import {
 type PageState = "upload" | "processing" | "done";
 
 const INITIAL_STEPS: ProcessingStep[] = [
-  { id: 1, message: "파일 업로드 중...", completed: false },
-  { id: 2, message: "오디오 추출 중...", completed: false },
-  { id: 3, message: "음성 인식 처리 중...", completed: false },
-  { id: 4, message: "텍스트 정리 중...", completed: false },
+  { id: 1, message: "파일을 업로드하고 있어요", completedMessage: "파일 업로드가 완료됐어요", completed: false },
+  { id: 2, message: "오디오를 추출하고 있어요", completedMessage: "오디오 추출이 끝났어요", completed: false },
+  { id: 3, message: "음성을 인식하고 있어요", completedMessage: "음성 인식이 끝났어요", completed: false },
+  { id: 4, message: "텍스트를 정리하고 있어요", completedMessage: "텍스트 정리가 끝났어요", completed: false },
 ];
 
 export default function SttPage() {
@@ -64,9 +64,9 @@ export default function SttPage() {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(result);
-      toast.success("클립보드에 복사되었습니다.");
+      toast.success("클립보드에 복사했어요");
     } catch {
-      toast.error("클립보드 복사에 실패했습니다.");
+      toast.error("클립보드 복사에 실패했어요");
     }
   };
 
@@ -100,7 +100,7 @@ export default function SttPage() {
 
       <h1 className="text-3xl font-bold text-foreground mb-2">STT 변환</h1>
       <p className="text-muted-foreground mb-8">
-        음성/영상 파일을 텍스트로 변환합니다
+        음성이나 영상 파일을 텍스트로 변환해드려요
       </p>
 
       {pageState === "upload" && (

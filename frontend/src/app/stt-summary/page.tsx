@@ -21,13 +21,13 @@ import { MarkdownPreview } from "@/components/MarkdownPreview";
 type PageState = "upload" | "processing" | "done";
 
 const INITIAL_STEPS: ProcessingStep[] = [
-  { id: 1, message: "파일 업로드 중...", completed: false },
-  { id: 2, message: "오디오 추출 중...", completed: false },
-  { id: 3, message: "음성 인식 처리 중...", completed: false },
-  { id: 4, message: "텍스트 병합 중...", completed: false },
-  { id: 5, message: "AI 분석 중...", completed: false },
-  { id: 6, message: "학습 노트 생성 중...", completed: false },
-  { id: 7, message: "최종 정리 중...", completed: false },
+  { id: 1, message: "파일을 업로드하고 있어요", completedMessage: "파일 업로드가 완료됐어요", completed: false },
+  { id: 2, message: "오디오를 추출하고 있어요", completedMessage: "오디오 추출이 끝났어요", completed: false },
+  { id: 3, message: "음성을 인식하고 있어요", completedMessage: "음성 인식이 끝났어요", completed: false },
+  { id: 4, message: "텍스트를 합치고 있어요", completedMessage: "텍스트 합치기가 끝났어요", completed: false },
+  { id: 5, message: "내용을 분석하고 있어요", completedMessage: "내용 분석이 끝났어요", completed: false },
+  { id: 6, message: "학습 노트를 만들고 있어요", completedMessage: "학습 노트가 완성됐어요", completed: false },
+  { id: 7, message: "마지막으로 정리하고 있어요", completedMessage: "모든 정리가 끝났어요", completed: false },
 ];
 
 const DEMO_RESULT = `# 데이터 구조 강의 노트
@@ -103,9 +103,9 @@ export default function SttSummaryPage() {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(result);
-      toast.success("클립보드에 복사되었습니다.");
+      toast.success("클립보드에 복사했어요");
     } catch {
-      toast.error("클립보드 복사에 실패했습니다.");
+      toast.error("클립보드 복사에 실패했어요");
     }
   };
 
@@ -138,10 +138,10 @@ export default function SttSummaryPage() {
       </Link>
 
       <h1 className="text-3xl font-bold text-foreground mb-2">
-        STT 변환 + AI 학습 노트
+        STT 변환 + 학습 노트
       </h1>
       <p className="text-muted-foreground mb-8">
-        음성/영상/문서 파일을 AI가 분석하여 체계적인 학습 노트를 생성합니다
+        음성, 영상, 문서 파일을 분석해서 학습 노트로 정리해드려요
       </p>
 
       {pageState === "upload" && (
@@ -154,7 +154,7 @@ export default function SttSummaryPage() {
           {files.length > 0 && (
             <div className="flex justify-center">
               <Button size="lg" onClick={handleUpload}>
-                AI 학습 노트 생성
+                학습 노트 생성
               </Button>
             </div>
           )}
@@ -164,7 +164,7 @@ export default function SttSummaryPage() {
       {pageState === "processing" && (
         <Card>
           <CardHeader>
-            <CardTitle>AI 분석 진행 중</CardTitle>
+            <CardTitle>분석 진행 중</CardTitle>
           </CardHeader>
           <CardContent>
             <ProcessingSteps steps={steps} currentStep={currentStep} />
@@ -177,7 +177,7 @@ export default function SttSummaryPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>AI 학습 노트</CardTitle>
+                <CardTitle>학습 노트</CardTitle>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={handleCopy}>
                     <Copy className="w-4 h-4" />
@@ -197,7 +197,7 @@ export default function SttSummaryPage() {
           <div className="flex justify-center">
             <Button variant="outline" onClick={handleReset}>
               <RotateCcw className="w-4 h-4" />
-              새로운 분석
+              다시 분석하기
             </Button>
           </div>
         </div>

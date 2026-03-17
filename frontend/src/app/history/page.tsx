@@ -42,12 +42,12 @@ export default function HistoryPage() {
 
   const handleDelete = (id: string) => {
     removeFromHistory(id);
-    toast.success("이력이 삭제되었습니다.");
+    toast.success("이력을 삭제했어요");
   };
 
   const handleClearAll = () => {
     clearHistory();
-    toast.success("모든 이력이 삭제되었습니다.");
+    toast.success("모든 이력을 삭제했어요");
   };
 
   return (
@@ -78,24 +78,18 @@ export default function HistoryPage() {
       {history.length === 0 ? (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <div
-              className="text-5xl mb-4"
-              aria-hidden="true"
-            >
-              &#x1F4DD;
-            </div>
             <h2 className="text-xl font-semibold text-foreground mb-2">
-              아직 변환 이력이 없습니다
+              아직 변환 이력이 없어요
             </h2>
             <p className="text-muted-foreground mb-6">
-              STT 변환이나 AI 학습 노트를 생성해보세요
+              STT 변환이나 학습 노트를 만들어보세요
             </p>
             <div className="flex gap-3">
               <Button asChild variant="outline">
                 <Link href="/stt">STT 변환</Link>
               </Button>
               <Button asChild>
-                <Link href="/stt-summary">AI 학습 노트</Link>
+                <Link href="/stt-summary">학습 노트</Link>
               </Button>
             </div>
           </CardContent>
@@ -122,7 +116,7 @@ export default function HistoryPage() {
                       {item.fileName}
                     </p>
                     <Badge variant={item.type === "stt" ? "default" : "secondary"}>
-                      {item.type === "stt" ? "STT" : "AI 노트"}
+                      {item.type === "stt" ? "STT" : "학습 노트"}
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
