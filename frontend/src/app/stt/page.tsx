@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, Copy, Download, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -20,6 +20,15 @@ import {
 /** 페이지 상태: 업로드 대기 / 처리 중 / 완료 */
 type PageState = "upload" | "processing" | "done";
 
+const STORAGE_KEY = "notebot-stt-state";
+
+/** sessionStorage에 저장할 상태 */
+interface SttSessionState {
+  pageState: PageState;
+  result: string;
+  fileNames: string[];
+}
+
 const INITIAL_STEPS: ProcessingStep[] = [
   { id: 1, message: "파일을 업로드하고 있어요", completedMessage: "파일 업로드가 완료됐어요", completed: false },
   { id: 2, message: "오디오를 추출하고 있어요", completedMessage: "오디오 추출이 끝났어요", completed: false },
@@ -33,6 +42,22 @@ export default function SttPage() {
   const [steps, setSteps] = useState<ProcessingStep[]>(INITIAL_STEPS);
   const [currentStep, setCurrentStep] = useState(0);
   const [result, setResult] = useState("");
+  const [fileNames, setFileNames] = useState<string[]>([]);
+
+  // sessionStorage에서 상태 복원
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const state: SttSessionState = JSON.parse(saved);
+        setPageState(state.pageState);
+        setResult(state.result);
+        setFileNames(state.fileNames);
+      }
+    } catch {
+      // 손상된 데이터 무시
+    }
+  }, []);
 
   // 데모용 처리 시뮬레이션
   const handleUpload = async () => {
@@ -52,13 +77,23 @@ export default function SttPage() {
     }
 
     // 데모 결과 텍스트
-    setResult(
+    const resultText =
       "안녕하세요, 오늘 강의에서는 데이터 구조의 기본 개념에 대해 알아보겠습니다.\n\n" +
-        "첫 번째로 배열에 대해 설명하겠습니다. 배열은 동일한 타입의 데이터를 연속된 메모리 공간에 저장하는 자료구조입니다.\n\n" +
-        "두 번째로 연결 리스트에 대해 알아보겠습니다. 연결 리스트는 각 노드가 데이터와 다음 노드를 가리키는 포인터로 구성됩니다.\n\n" +
-        "마지막으로 스택과 큐에 대해 설명하겠습니다. 스택은 LIFO, 큐는 FIFO 방식으로 동작합니다.",
-    );
+      "첫 번째로 배열에 대해 설명하겠습니다. 배열은 동일한 타입의 데이터를 연속된 메모리 공간에 저장하는 자료구조입니다.\n\n" +
+      "두 번째로 연결 리스트에 대해 알아보겠습니다. 연결 리스트는 각 노드가 데이터와 다음 노드를 가리키는 포인터로 구성됩니다.\n\n" +
+      "마지막으로 스택과 큐에 대해 설명하겠습니다. 스택은 LIFO, 큐는 FIFO 방식으로 동작합니다.";
+    setResult(resultText);
     setPageState("done");
+
+    // 파일명 저장
+    const names = files.map((f) => f.name);
+    setFileNames(names);
+
+    // sessionStorage에 저장
+    sessionStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ pageState: "done", result: resultText, fileNames: names }),
+    );
   };
 
   const handleCopy = async () => {
@@ -86,6 +121,8 @@ export default function SttPage() {
     setSteps(INITIAL_STEPS);
     setCurrentStep(0);
     setResult("");
+    setFileNames([]);
+    sessionStorage.removeItem(STORAGE_KEY);
   };
 
   return (
@@ -139,7 +176,7 @@ export default function SttPage() {
                 <div>
                   <CardTitle>변환 결과</CardTitle>
                   <p className="text-sm text-muted-foreground mt-1">
-                    {files.map((f) => f.name).join(", ")}
+                    {(files.length > 0 ? files.map((f) => f.name) : fileNames).join(", ")}
                   </p>
                 </div>
                 <div className="flex gap-2">
