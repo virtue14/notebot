@@ -6,6 +6,8 @@ from pydantic import BaseModel
 class UploadResponse(BaseModel):
     id: str
     file_name: str
+    file_size: int
+    mime_type: str
     status: str
     created_at: datetime
 
