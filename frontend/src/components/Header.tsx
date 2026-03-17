@@ -4,7 +4,7 @@
  */
 
 import Link from "next/link";
-import { NotebookPen } from "lucide-react";
+import { Bot } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 
 /** 모든 페이지 상단에 표시되는 공통 헤더. */
@@ -14,7 +14,7 @@ export function Header() {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
-            <NotebookPen className="w-7 h-7 text-foreground" />
+            <Bot className="w-7 h-7 text-foreground" />
             <span className="text-xl font-bold">Notebot</span>
           </Link>
 

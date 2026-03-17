@@ -11,6 +11,7 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 export interface ProcessingStep {
   id: number;
   message: string;
+  completedMessage?: string;
   completed: boolean;
 }
 
@@ -53,7 +54,7 @@ export function ProcessingSteps({ steps, currentStep }: ProcessingStepsProps) {
                     : "text-muted-foreground"
               }`}
             >
-              {step.message}
+              {step.completed && step.completedMessage ? step.completedMessage : step.message}
             </p>
           </div>
         </div>

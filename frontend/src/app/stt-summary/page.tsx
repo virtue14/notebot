@@ -21,13 +21,13 @@ import { MarkdownPreview } from "@/components/MarkdownPreview";
 type PageState = "upload" | "processing" | "done";
 
 const INITIAL_STEPS: ProcessingStep[] = [
-  { id: 1, message: "파일을 업로드하고 있어요", completed: false },
-  { id: 2, message: "오디오를 추출하고 있어요", completed: false },
-  { id: 3, message: "음성을 인식하고 있어요", completed: false },
-  { id: 4, message: "텍스트를 합치고 있어요", completed: false },
-  { id: 5, message: "내용을 분석하고 있어요", completed: false },
-  { id: 6, message: "학습 노트를 만들고 있어요", completed: false },
-  { id: 7, message: "마지막으로 정리하고 있어요", completed: false },
+  { id: 1, message: "파일을 업로드하고 있어요", completedMessage: "파일 업로드가 완료됐어요", completed: false },
+  { id: 2, message: "오디오를 추출하고 있어요", completedMessage: "오디오 추출이 끝났어요", completed: false },
+  { id: 3, message: "음성을 인식하고 있어요", completedMessage: "음성 인식이 끝났어요", completed: false },
+  { id: 4, message: "텍스트를 합치고 있어요", completedMessage: "텍스트 병합이 끝났어요", completed: false },
+  { id: 5, message: "내용을 분석하고 있어요", completedMessage: "내용 분석이 끝났어요", completed: false },
+  { id: 6, message: "학습 노트를 만들고 있어요", completedMessage: "학습 노트가 완성됐어요", completed: false },
+  { id: 7, message: "마지막으로 정리하고 있어요", completedMessage: "모든 정리가 끝났어요", completed: false },
 ];
 
 const DEMO_RESULT = `# 데이터 구조 강의 노트
