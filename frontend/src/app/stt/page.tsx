@@ -52,10 +52,8 @@ export default function SttPage() {
     }
 
     // 데모 결과 텍스트
-    const fileNames = files.map((f) => f.name).join(", ");
     setResult(
-      `[STT 변환 결과]\n\n파일: ${fileNames}\n\n` +
-        "안녕하세요, 오늘 강의에서는 데이터 구조의 기본 개념에 대해 알아보겠습니다.\n\n" +
+      "안녕하세요, 오늘 강의에서는 데이터 구조의 기본 개념에 대해 알아보겠습니다.\n\n" +
         "첫 번째로 배열에 대해 설명하겠습니다. 배열은 동일한 타입의 데이터를 연속된 메모리 공간에 저장하는 자료구조입니다.\n\n" +
         "두 번째로 연결 리스트에 대해 알아보겠습니다. 연결 리스트는 각 노드가 데이터와 다음 노드를 가리키는 포인터로 구성됩니다.\n\n" +
         "마지막으로 스택과 큐에 대해 설명하겠습니다. 스택은 LIFO, 큐는 FIFO 방식으로 동작합니다.",
@@ -138,7 +136,12 @@ export default function SttPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>변환 결과</CardTitle>
+                <div>
+                  <CardTitle>변환 결과</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {files.map((f) => f.name).join(", ")}
+                  </p>
+                </div>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={handleCopy}>
                     <Copy className="w-4 h-4" />
@@ -160,7 +163,7 @@ export default function SttPage() {
           <div className="flex justify-center">
             <Button variant="outline" onClick={handleReset}>
               <RotateCcw className="w-4 h-4" />
-              새로운 변환
+              다시 변환하기
             </Button>
           </div>
         </div>
