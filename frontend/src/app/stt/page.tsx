@@ -50,7 +50,7 @@ export default function SttPage() {
       const saved = sessionStorage.getItem(STORAGE_KEY);
       if (saved) {
         const state: SttSessionState = JSON.parse(saved);
-        setPageState(state.pageState);
+        setPageState(state.pageState === "done" ? "done" : "upload");
         setResult(state.result);
         setFileNames(state.fileNames);
       }
