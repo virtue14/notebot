@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, Copy, Download, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -21,6 +21,7 @@ import {
 type PageState = "upload" | "processing" | "done";
 
 const STORAGE_KEY = "notebot-stt-state";
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 /** sessionStorage에 저장할 상태 */
 interface SttSessionState {
@@ -43,6 +44,14 @@ export default function SttPage() {
   const [currentStep, setCurrentStep] = useState(0);
   const [result, setResult] = useState("");
   const [fileNames, setFileNames] = useState<string[]>([]);
+  const abortRef = useRef<AbortController | null>(null);
+
+  // 언마운트 시 폴링 중단
+  useEffect(() => {
+    return () => {
+      abortRef.current?.abort();
+    };
+  }, []);
 
   // sessionStorage에서 상태 복원
   useEffect(() => {
@@ -68,19 +77,29 @@ export default function SttPage() {
     setPageState("processing");
     const updatedSteps = [...INITIAL_STEPS];
 
+    abortRef.current = new AbortController();
+    const { signal } = abortRef.current;
+
     // Step 1: 파일 업로드
     setCurrentStep(0);
     let uploadId: string;
     try {
       const formData = new FormData();
       formData.append("file", files[0]);
-      const uploadRes = await fetch("http://localhost:8000/api/v1/upload/", {
+      const uploadRes = await fetch(`${API_BASE}/api/v1/upload/`, {
         method: "POST",
         body: formData,
+        signal,
       });
       if (!uploadRes.ok) {
-        const err = await uploadRes.json();
-        throw new Error(err.detail || "업로드에 실패했어요");
+        let message = "업로드에 실패했어요";
+        try {
+          const err = await uploadRes.json();
+          message = err.detail || message;
+        } catch {
+          // JSON 파싱 실패 시 기본 메시지 사용
+        }
+        throw new Error(message);
       }
       const uploadData = await uploadRes.json();
       uploadId = uploadData.id;
@@ -108,7 +127,7 @@ export default function SttPage() {
     let sttContent: string | null = null;
     try {
       while (Date.now() - startTime < POLL_TIMEOUT) {
-        const statusRes = await fetch(`http://localhost:8000/api/v1/upload/${uploadId}`);
+        const statusRes = await fetch(`${API_BASE}/api/v1/upload/${uploadId}`, { signal });
         if (!statusRes.ok) throw new Error("상태 조회에 실패했어요");
         const statusData = await statusRes.json();
 
@@ -204,7 +223,7 @@ export default function SttPage() {
           <FileUploader
             accept="audio/*,video/*"
             onFilesSelected={setFiles}
-            maxFiles={5}
+            maxFiles={1}
           />
           {files.length > 0 && (
             <div className="flex justify-center">
