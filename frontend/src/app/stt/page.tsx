@@ -59,7 +59,6 @@ export default function SttPage() {
     }
   }, []);
 
-  // 데모용 처리 시뮬레이션
   const handleUpload = async () => {
     if (files.length === 0) {
       toast.error("파일을 선택해주세요.");
@@ -69,27 +68,87 @@ export default function SttPage() {
     setPageState("processing");
     const updatedSteps = [...INITIAL_STEPS];
 
-    for (let i = 0; i < updatedSteps.length; i++) {
-      setCurrentStep(i);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-      updatedSteps[i] = { ...updatedSteps[i], completed: true };
+    // Step 1: 파일 업로드
+    setCurrentStep(0);
+    let uploadId: string;
+    try {
+      const formData = new FormData();
+      formData.append("file", files[0]);
+      const uploadRes = await fetch("http://localhost:8000/api/v1/upload/", {
+        method: "POST",
+        body: formData,
+      });
+      if (!uploadRes.ok) {
+        const err = await uploadRes.json();
+        throw new Error(err.detail || "업로드에 실패했어요");
+      }
+      const uploadData = await uploadRes.json();
+      uploadId = uploadData.id;
+      updatedSteps[0] = { ...updatedSteps[0], completed: true };
       setSteps([...updatedSteps]);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "업로드에 실패했어요");
+      setPageState("upload");
+      setSteps(INITIAL_STEPS);
+      return;
     }
 
-    // 데모 결과 텍스트
-    const resultText =
-      "안녕하세요, 오늘 강의에서는 데이터 구조의 기본 개념에 대해 알아보겠습니다.\n\n" +
-      "첫 번째로 배열에 대해 설명하겠습니다. 배열은 동일한 타입의 데이터를 연속된 메모리 공간에 저장하는 자료구조입니다.\n\n" +
-      "두 번째로 연결 리스트에 대해 알아보겠습니다. 연결 리스트는 각 노드가 데이터와 다음 노드를 가리키는 포인터로 구성됩니다.\n\n" +
-      "마지막으로 스택과 큐에 대해 설명하겠습니다. 스택은 LIFO, 큐는 FIFO 방식으로 동작합니다.";
+    // Step 2: 오디오 추출 (서버에서 처리, UI에서 짧은 대기)
+    setCurrentStep(1);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    updatedSteps[1] = { ...updatedSteps[1], completed: true };
+    setSteps([...updatedSteps]);
+
+    // Step 3: 음성 인식 — 폴링으로 서버 상태 확인
+    setCurrentStep(2);
+    const POLL_INTERVAL = 2000;
+    const POLL_TIMEOUT = 10 * 60 * 1000; // 10분
+    const startTime = Date.now();
+
+    let sttContent: string | null = null;
+    try {
+      while (Date.now() - startTime < POLL_TIMEOUT) {
+        const statusRes = await fetch(`http://localhost:8000/api/v1/upload/${uploadId}`);
+        if (!statusRes.ok) throw new Error("상태 조회에 실패했어요");
+        const statusData = await statusRes.json();
+
+        if (statusData.status === "completed") {
+          sttContent = statusData.stt_content;
+          break;
+        }
+        if (statusData.status === "failed") {
+          throw new Error("변환에 실패했어요. 다시 시도해주세요.");
+        }
+        await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL));
+      }
+
+      if (!sttContent) {
+        throw new Error("변환 시간이 초과됐어요. 다시 시도해주세요.");
+      }
+
+      updatedSteps[2] = { ...updatedSteps[2], completed: true };
+      setSteps([...updatedSteps]);
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "변환에 실패했어요");
+      setPageState("upload");
+      setSteps(INITIAL_STEPS);
+      return;
+    }
+
+    // Step 4: 텍스트 정리
+    setCurrentStep(3);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    updatedSteps[3] = { ...updatedSteps[3], completed: true };
+    setSteps([...updatedSteps]);
+
+    // 결과 표시
+    const resultText = sttContent;
     setResult(resultText);
     setPageState("done");
 
-    // 파일명 저장
     const names = files.map((f) => f.name);
     setFileNames(names);
 
-    // sessionStorage에 저장
     sessionStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ pageState: "done", result: resultText, fileNames: names }),
