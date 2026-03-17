@@ -25,7 +25,7 @@ const INITIAL_STEPS: ProcessingStep[] = [
   { id: 2, message: "오디오 추출 중...", completed: false },
   { id: 3, message: "음성 인식 처리 중...", completed: false },
   { id: 4, message: "텍스트 병합 중...", completed: false },
-  { id: 5, message: "AI 분석 중...", completed: false },
+  { id: 5, message: "내용 분석 중...", completed: false },
   { id: 6, message: "학습 노트 생성 중...", completed: false },
   { id: 7, message: "최종 정리 중...", completed: false },
 ];
@@ -138,10 +138,10 @@ export default function SttSummaryPage() {
       </Link>
 
       <h1 className="text-3xl font-bold text-foreground mb-2">
-        STT 변환 + AI 학습 노트
+        STT 변환 + 학습 노트
       </h1>
       <p className="text-muted-foreground mb-8">
-        음성/영상/문서 파일을 AI가 분석하여 체계적인 학습 노트를 생성합니다
+        음성/영상/문서 파일을 분석하여 체계적인 학습 노트로 정리합니다
       </p>
 
       {pageState === "upload" && (
@@ -154,7 +154,7 @@ export default function SttSummaryPage() {
           {files.length > 0 && (
             <div className="flex justify-center">
               <Button size="lg" onClick={handleUpload}>
-                AI 학습 노트 생성
+                학습 노트 생성
               </Button>
             </div>
           )}
@@ -164,7 +164,7 @@ export default function SttSummaryPage() {
       {pageState === "processing" && (
         <Card>
           <CardHeader>
-            <CardTitle>AI 분석 진행 중</CardTitle>
+            <CardTitle>분석 진행 중</CardTitle>
           </CardHeader>
           <CardContent>
             <ProcessingSteps steps={steps} currentStep={currentStep} />
@@ -177,7 +177,7 @@ export default function SttSummaryPage() {
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
-                <CardTitle>AI 학습 노트</CardTitle>
+                <CardTitle>학습 노트</CardTitle>
                 <div className="flex gap-2">
                   <Button variant="outline" size="sm" onClick={handleCopy}>
                     <Copy className="w-4 h-4" />
@@ -197,7 +197,7 @@ export default function SttSummaryPage() {
           <div className="flex justify-center">
             <Button variant="outline" onClick={handleReset}>
               <RotateCcw className="w-4 h-4" />
-              새로운 분석
+              다시 분석하기
             </Button>
           </div>
         </div>

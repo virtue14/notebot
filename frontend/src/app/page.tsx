@@ -4,7 +4,7 @@
  */
 
 import Link from "next/link";
-import { Mic, FileText, Sparkles } from "lucide-react";
+import { Mic, FileText, GraduationCap, Moon, HardDrive } from "lucide-react";
 import {
   Card,
   CardContent,
@@ -15,7 +15,7 @@ import {
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-gray-900 dark:via-indigo-950 dark:to-purple-950 transition-colors">
+    <div className="min-h-screen bg-background transition-colors">
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-5xl mx-auto">
           {/* 히어로 섹션 */}
@@ -31,9 +31,9 @@ export default function Home() {
           {/* 서비스 카드 */}
           <div className="grid md:grid-cols-2 gap-8">
             <Link href="/stt" className="group">
-              <Card className="h-full transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border-2 hover:border-blue-500">
+              <Card className="h-full transition-all duration-300 hover:shadow-lg border-2 hover:border-blue-500">
                 <CardHeader>
-                  <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 mb-4 group-hover:scale-110 transition-transform">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600 mb-4">
                     <Mic className="w-8 h-8 text-white" />
                   </div>
                   <CardTitle className="text-2xl">STT 변환</CardTitle>
@@ -70,20 +70,14 @@ export default function Home() {
             </Link>
 
             <Link href="/stt-summary" className="group">
-              <Card className="h-full transition-all duration-300 hover:shadow-2xl hover:-translate-y-2 border-2 hover:border-purple-500 relative overflow-hidden">
-                <div className="absolute top-4 right-4">
-                  <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-bold rounded-full">
-                    <Sparkles className="w-3 h-3" />
-                    AI 학습 노트
-                  </span>
-                </div>
+              <Card className="h-full transition-all duration-300 hover:shadow-lg border-2 hover:border-purple-500">
                 <CardHeader>
-                  <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 mb-4 group-hover:scale-110 transition-transform">
+                  <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-purple-600 mb-4">
                     <FileText className="w-8 h-8 text-white" />
                   </div>
                   <CardTitle className="text-2xl">STT 변환 + 정리</CardTitle>
                   <CardDescription className="text-base">
-                    AI가 완벽한 학습 노트를 만들어드립니다
+                    음성을 체계적인 학습 노트로 정리합니다
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -106,7 +100,7 @@ export default function Home() {
                     </li>
                   </ul>
                   <div className="mt-6 text-center">
-                    <span className="inline-block px-4 py-2 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded-full font-medium group-hover:bg-gradient-to-r group-hover:from-purple-600 group-hover:to-pink-600 group-hover:text-white transition-all">
+                    <span className="inline-block px-4 py-2 bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300 rounded-full font-medium group-hover:bg-purple-600 group-hover:text-white transition-all">
                       시작하기 &rarr;
                     </span>
                   </div>
@@ -122,7 +116,7 @@ export default function Home() {
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="p-6 bg-card rounded-xl shadow-sm border">
-                <div className="text-3xl mb-3" aria-hidden="true">&#x1F393;</div>
+                <GraduationCap className="w-8 h-8 text-muted-foreground mb-3" />
                 <h3 className="font-semibold text-foreground mb-2">
                   학습에 최적화
                 </h3>
@@ -131,7 +125,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="p-6 bg-card rounded-xl shadow-sm border">
-                <div className="text-3xl mb-3" aria-hidden="true">&#x1F319;</div>
+                <Moon className="w-8 h-8 text-muted-foreground mb-3" />
                 <h3 className="font-semibold text-foreground mb-2">
                   다크 모드
                 </h3>
@@ -140,7 +134,7 @@ export default function Home() {
                 </p>
               </div>
               <div className="p-6 bg-card rounded-xl shadow-sm border">
-                <div className="text-3xl mb-3" aria-hidden="true">&#x1F4BE;</div>
+                <HardDrive className="w-8 h-8 text-muted-foreground mb-3" />
                 <h3 className="font-semibold text-foreground mb-2">
                   로컬 저장
                 </h3>
