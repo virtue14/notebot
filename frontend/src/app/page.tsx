@@ -45,7 +45,7 @@ export default function Home() {
                   <ul className="space-y-3 text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <span className="text-blue-500 mt-1">&#10003;</span>
-                      <span>STT(음성 인식) 기술 기반 변환</span>
+                      <span>음성 인식 기술로 정확하게 변환</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-blue-500 mt-1">&#10003;</span>
@@ -84,7 +84,7 @@ export default function Home() {
                   <ul className="space-y-3 text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <span className="text-purple-500 mt-1">&#10003;</span>
-                      <span>STT(음성 인식) 변환 + 내용 정리까지 한번에</span>
+                      <span>음성 인식부터 내용 정리까지 한번에</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-purple-500 mt-1">&#10003;</span>
