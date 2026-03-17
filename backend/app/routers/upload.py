@@ -2,7 +2,7 @@ import fnmatch
 import uuid
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, UploadFile
 from sqlalchemy.orm import Session, joinedload
 
 from app.config import settings
@@ -21,8 +21,17 @@ def _is_allowed_mime(mime_type: str) -> bool:
     )
 
 
+def _is_stt_target(mime_type: str) -> bool:
+    """오디오 또는 비디오 MIME 타입인지 확인한다."""
+    return mime_type.startswith("audio/") or mime_type.startswith("video/")
+
+
 @router.post("/", response_model=UploadResponse)
-async def upload_file(file: UploadFile, db: Session = Depends(get_db)):
+async def upload_file(
+    file: UploadFile,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     """파일을 업로드하고 메타데이터를 DB에 저장한다."""
     if not file.content_type or not _is_allowed_mime(file.content_type):
         raise HTTPException(
@@ -64,6 +73,11 @@ async def upload_file(file: UploadFile, db: Session = Depends(get_db)):
     db.add(upload)
     db.commit()
     db.refresh(upload)
+
+    if _is_stt_target(upload.mime_type):
+        from app.services.stt import run_stt_task
+
+        background_tasks.add_task(run_stt_task, upload.id)
 
     return upload
 

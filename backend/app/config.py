@@ -13,6 +13,8 @@ class Settings(BaseSettings):
         "application/pdf",
     ]
     MAX_UPLOAD_SIZE: int = 100 * 1024 * 1024  # 100MB
+    WHISPER_MODEL: str = "base"
+    WHISPER_DEVICE: str = "cpu"
 
     model_config = {"env_file": ".env", "env_file_encoding": "utf-8"}
 
