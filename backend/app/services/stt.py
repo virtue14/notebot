@@ -1,4 +1,5 @@
 import logging
+import threading
 
 from faster_whisper import WhisperModel
 
@@ -9,17 +10,20 @@ from app.models.upload import SttResult, Upload
 logger = logging.getLogger(__name__)
 
 _model: WhisperModel | None = None
+_model_lock = threading.Lock()
 
 
 def get_model() -> WhisperModel:
-    """WhisperModel 싱글턴을 반환한다 (lazy loading)."""
+    """WhisperModel 싱글턴을 반환한다 (lazy loading, thread-safe)."""
     global _model
     if _model is None:
-        _model = WhisperModel(
-            settings.WHISPER_MODEL,
-            device=settings.WHISPER_DEVICE,
-            compute_type="int8",
-        )
+        with _model_lock:
+            if _model is None:
+                _model = WhisperModel(
+                    settings.WHISPER_MODEL,
+                    device=settings.WHISPER_DEVICE,
+                    compute_type="int8",
+                )
     return _model
 
 
