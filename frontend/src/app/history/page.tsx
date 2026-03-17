@@ -42,12 +42,12 @@ export default function HistoryPage() {
 
   const handleDelete = (id: string) => {
     removeFromHistory(id);
-    toast.success("이력이 삭제되었습니다.");
+    toast.success("이력을 삭제했어요");
   };
 
   const handleClearAll = () => {
     clearHistory();
-    toast.success("모든 이력이 삭제되었습니다.");
+    toast.success("모든 이력을 삭제했어요");
   };
 
   return (
