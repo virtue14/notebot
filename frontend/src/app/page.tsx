@@ -24,7 +24,7 @@ export default function Home() {
               공부에만 집중하세요
             </h1>
             <p className="text-lg text-muted-foreground">
-              강의 녹음, 교재 PDF를 완벽한 학습 노트로 자동 정리해드립니다
+              강의 녹음과 교재를 체계적인 학습 노트로 정리해드려요
             </p>
           </div>
 
@@ -38,7 +38,7 @@ export default function Home() {
                   </div>
                   <CardTitle className="text-2xl">STT 변환</CardTitle>
                   <CardDescription className="text-base">
-                    강의 녹음을 텍스트로 변환합니다
+                    강의 녹음을 텍스트로 변환해드려요
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -77,7 +77,7 @@ export default function Home() {
                   </div>
                   <CardTitle className="text-2xl">STT 변환 + 정리</CardTitle>
                   <CardDescription className="text-base">
-                    음성을 체계적인 학습 노트로 정리합니다
+                    음성을 체계적인 학습 노트로 정리해드려요
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -116,30 +116,36 @@ export default function Home() {
             </h2>
             <div className="grid md:grid-cols-3 gap-6">
               <div className="p-6 bg-card rounded-xl shadow-sm border">
-                <GraduationCap className="w-8 h-8 text-muted-foreground mb-3" />
+                <div className="flex items-center justify-center mb-3">
+                  <GraduationCap className="w-8 h-8 text-muted-foreground" />
+                </div>
                 <h3 className="font-semibold text-foreground mb-2">
                   학습에 최적화
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  대학생과 수험생을 위한 맞춤형 노트
+                  강의와 교재를 한눈에 정리해요
                 </p>
               </div>
               <div className="p-6 bg-card rounded-xl shadow-sm border">
-                <Moon className="w-8 h-8 text-muted-foreground mb-3" />
+                <div className="flex items-center justify-center mb-3">
+                  <Moon className="w-8 h-8 text-muted-foreground" />
+                </div>
                 <h3 className="font-semibold text-foreground mb-2">
                   다크 모드
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  눈 피로도를 줄이는 편안한 테마
+                  밤에도 편하게 볼 수 있어요
                 </p>
               </div>
               <div className="p-6 bg-card rounded-xl shadow-sm border">
-                <HardDrive className="w-8 h-8 text-muted-foreground mb-3" />
+                <div className="flex items-center justify-center mb-3">
+                  <HardDrive className="w-8 h-8 text-muted-foreground" />
+                </div>
                 <h3 className="font-semibold text-foreground mb-2">
                   로컬 저장
                 </h3>
                 <p className="text-sm text-muted-foreground">
-                  모든 노트를 안전하게 보관합니다
+                  노트를 브라우저에 안전하게 보관해요
                 </p>
               </div>
             </div>

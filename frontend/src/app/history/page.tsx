@@ -79,10 +79,10 @@ export default function HistoryPage() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <h2 className="text-xl font-semibold text-foreground mb-2">
-              아직 변환 이력이 없습니다
+              아직 변환 이력이 없어요
             </h2>
             <p className="text-muted-foreground mb-6">
-              STT 변환이나 학습 노트를 생성해보세요
+              STT 변환이나 학습 노트를 만들어보세요
             </p>
             <div className="flex gap-3">
               <Button asChild variant="outline">

@@ -21,10 +21,10 @@ import {
 type PageState = "upload" | "processing" | "done";
 
 const INITIAL_STEPS: ProcessingStep[] = [
-  { id: 1, message: "파일 업로드 중...", completed: false },
-  { id: 2, message: "오디오 추출 중...", completed: false },
-  { id: 3, message: "음성 인식 처리 중...", completed: false },
-  { id: 4, message: "텍스트 정리 중...", completed: false },
+  { id: 1, message: "파일을 업로드하고 있어요", completed: false },
+  { id: 2, message: "오디오를 추출하고 있어요", completed: false },
+  { id: 3, message: "음성을 인식하고 있어요", completed: false },
+  { id: 4, message: "텍스트를 정리하고 있어요", completed: false },
 ];
 
 export default function SttPage() {
@@ -100,7 +100,7 @@ export default function SttPage() {
 
       <h1 className="text-3xl font-bold text-foreground mb-2">STT 변환</h1>
       <p className="text-muted-foreground mb-8">
-        음성/영상 파일을 텍스트로 변환합니다
+        음성이나 영상 파일을 텍스트로 변환해드려요
       </p>
 
       {pageState === "upload" && (

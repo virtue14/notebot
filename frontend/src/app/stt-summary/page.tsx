@@ -21,13 +21,13 @@ import { MarkdownPreview } from "@/components/MarkdownPreview";
 type PageState = "upload" | "processing" | "done";
 
 const INITIAL_STEPS: ProcessingStep[] = [
-  { id: 1, message: "파일 업로드 중...", completed: false },
-  { id: 2, message: "오디오 추출 중...", completed: false },
-  { id: 3, message: "음성 인식 처리 중...", completed: false },
-  { id: 4, message: "텍스트 병합 중...", completed: false },
-  { id: 5, message: "내용 분석 중...", completed: false },
-  { id: 6, message: "학습 노트 생성 중...", completed: false },
-  { id: 7, message: "최종 정리 중...", completed: false },
+  { id: 1, message: "파일을 업로드하고 있어요", completed: false },
+  { id: 2, message: "오디오를 추출하고 있어요", completed: false },
+  { id: 3, message: "음성을 인식하고 있어요", completed: false },
+  { id: 4, message: "텍스트를 합치고 있어요", completed: false },
+  { id: 5, message: "내용을 분석하고 있어요", completed: false },
+  { id: 6, message: "학습 노트를 만들고 있어요", completed: false },
+  { id: 7, message: "마지막으로 정리하고 있어요", completed: false },
 ];
 
 const DEMO_RESULT = `# 데이터 구조 강의 노트
@@ -141,7 +141,7 @@ export default function SttSummaryPage() {
         STT 변환 + 학습 노트
       </h1>
       <p className="text-muted-foreground mb-8">
-        음성/영상/문서 파일을 분석하여 체계적인 학습 노트로 정리합니다
+        음성, 영상, 문서 파일을 분석해서 학습 노트로 정리해드려요
       </p>
 
       {pageState === "upload" && (
