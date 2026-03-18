@@ -10,7 +10,7 @@ interface LogoProps {
 /** Google Gemini 로고 아이콘. */
 export function GeminiLogo({ className = "w-4 h-4" }: LogoProps) {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+    <svg className={className} viewBox="0 0 24 24" fill="#4285F4">
       <path d="M12 0C12 6.627 6.627 12 0 12c6.627 0 12 5.373 12 12 0-6.627 5.373-12 12-12-6.627 0-12-5.373-12-12z" />
     </svg>
   );

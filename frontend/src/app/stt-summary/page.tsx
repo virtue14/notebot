@@ -190,7 +190,7 @@ export default function SttSummaryPage() {
           <FileUploader
             accept=".txt,.pdf,text/plain,application/pdf"
             onFilesSelected={setFiles}
-            maxFiles={1}
+            maxFiles={10}
           />
           {files.length > 0 && (
             <div className="flex justify-center">

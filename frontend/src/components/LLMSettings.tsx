@@ -6,7 +6,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Eye, EyeOff, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 import { OpenAILogo } from "@/components/icons/OpenAILogo";
 import { AnthropicLogo } from "@/components/icons/AnthropicLogo";
 import { GeminiLogo } from "@/components/icons/GeminiLogo";
@@ -15,9 +15,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
 
-const STORAGE_KEY = "notebot_llm_config";
+const SETTINGS_KEY = "notebot_llm_settings";
 
 interface ModelInfo {
   id: string;
@@ -32,14 +31,14 @@ const PROVIDER_MODELS: Record<string, ModelInfo[]> = {
     { id: "gpt-5.3-codex", name: "GPT-5.3 Codex", tag: "코드 특화" },
   ],
   anthropic: [
-    { id: "claude-sonnet-4-6", name: "Claude Sonnet 4.6", tag: "추천 · 빠르고 균형" },
-    { id: "claude-opus-4-6", name: "Claude Opus 4.6", tag: "최고 성능" },
-    { id: "claude-haiku-4-5", name: "Claude Haiku 4.5", tag: "초고속 · 저비용" },
+    { id: "claude-sonnet-4-6", name: "Sonnet 4.6", tag: "추천 · 빠르고 균형" },
+    { id: "claude-opus-4-6", name: "Opus 4.6", tag: "최고 성능" },
+    { id: "claude-haiku-4-5", name: "Haiku 4.5", tag: "초고속 · 저비용" },
   ],
   gemini: [
-    { id: "gemini-3-flash", name: "Gemini 3 Flash", tag: "추천 · 빠름" },
-    { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro", tag: "고성능" },
-    { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash Lite", tag: "초경량" },
+    { id: "gemini-3-flash", name: "3 Flash", tag: "추천 · 빠름" },
+    { id: "gemini-3.1-pro", name: "3.1 Pro", tag: "고성능" },
+    { id: "gemini-3.1-flash-lite", name: "3.1 Flash Lite", tag: "초경량" },
   ],
 };
 
@@ -68,21 +67,15 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
   const [provider, setProvider] = useState(DEFAULT_PROVIDER);
   const [model, setModel] = useState(PROVIDER_MODELS[DEFAULT_PROVIDER][0].id);
   const [apiKey, setApiKey] = useState("");
-  const [showKey, setShowKey] = useState(false);
-  const [saveKey, setSaveKey] = useState(false);
 
-  // localStorage에서 설정 복원
+  // localStorage에서 provider/model만 복원
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
+      const saved = localStorage.getItem(SETTINGS_KEY);
       if (saved) {
-        const config = JSON.parse(saved);
-        if (config.provider) setProvider(config.provider);
-        if (config.model) setModel(config.model);
-        if (config.apiKey) {
-          setApiKey(config.apiKey);
-          setSaveKey(true);
-        }
+        const settings = JSON.parse(saved);
+        if (settings.provider) setProvider(settings.provider);
+        if (settings.model) setModel(settings.model);
       }
     } catch {
       // 손상된 데이터 무시
@@ -94,14 +87,10 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
     onConfigChange({ provider, model, apiKey });
   }, [provider, model, apiKey, onConfigChange]);
 
-  // localStorage 저장/삭제
+  // provider/model만 저장 (apiKey 절대 포함 안 함)
   useEffect(() => {
-    if (saveKey && apiKey) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ provider, model, apiKey }));
-    } else {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-  }, [saveKey, provider, model, apiKey]);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ provider, model }));
+  }, [provider, model]);
 
   const handleProviderChange = (newProvider: string) => {
     setProvider(newProvider);
@@ -117,7 +106,7 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
           요약에 사용할 플랫폼과 모델을 선택해주세요.
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-4">
         <Tabs value={provider} onValueChange={handleProviderChange}>
           <TabsList className="w-full h-11 p-1">
             <TabsTrigger value="openai" className="flex-1 flex items-center gap-1.5">
@@ -135,75 +124,50 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
           </TabsList>
 
           {Object.keys(PROVIDER_MODELS).map((p) => (
-            <TabsContent key={p} value={p} className="space-y-4 pt-4">
-              {/* API 키 입력 */}
-              <div className="space-y-2">
-                <Label htmlFor={`apikey-${p}`}>API 키</Label>
-                <div className="relative">
-                  <Input
-                    id={`apikey-${p}`}
-                    type={showKey ? "text" : "password"}
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    placeholder="API 키를 입력해주세요"
-                    className="pr-10"
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute right-0 top-0 h-full px-3"
-                    onClick={() => setShowKey(!showKey)}
-                    aria-label={showKey ? "API 키 숨기기" : "API 키 보기"}
-                  >
-                    {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                </div>
-                <a
-                  href={PROVIDER_KEY_URLS[p].url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-muted-foreground hover:text-foreground underline transition-colors"
-                >
-                  {PROVIDER_KEY_URLS[p].label} &rarr;
-                </a>
-              </div>
-
-              {/* 모델 선택 */}
-              <div className="space-y-2">
-                <Label>모델</Label>
-                <Select value={model} onValueChange={setModel}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PROVIDER_MODELS[p].map((m) => (
-                      <SelectItem key={m.id} value={m.id}>
-                        {m.name} · {m.tag}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* 저장 옵션 */}
-              <label className="flex items-center gap-2 text-sm text-muted-foreground cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={saveKey}
-                  onChange={(e) => setSaveKey(e.target.checked)}
-                  className="rounded border-border accent-primary"
-                />
-                다음에도 사용할게요
-              </label>
+            <TabsContent key={p} value={p} className="pt-3">
+              <Select value={model} onValueChange={setModel}>
+                <SelectTrigger className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PROVIDER_MODELS[p].map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      <span className="flex items-center justify-between w-full">
+                        <span className="font-medium">{m.name}</span>
+                        <span className="text-xs text-muted-foreground ml-2">{m.tag}</span>
+                      </span>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </TabsContent>
           ))}
         </Tabs>
 
+        {/* API 키 — 플랫폼 공통 */}
+        <div className="space-y-2">
+          <Label htmlFor="apikey">API 키</Label>
+          <Input
+            id="apikey"
+            type="password"
+            value={apiKey}
+            onChange={(e) => setApiKey(e.target.value)}
+            placeholder="API 키를 입력해주세요"
+          />
+          <a
+            href={PROVIDER_KEY_URLS[provider].url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-muted-foreground hover:text-foreground underline transition-colors"
+          >
+            {PROVIDER_KEY_URLS[provider].label} &rarr;
+          </a>
+        </div>
+
         {/* 보안 안내 */}
         <div className="flex items-center gap-2 mt-6 px-3 py-2.5 rounded-lg bg-muted/50 text-xs text-muted-foreground">
           <Lock className="w-3 h-3 shrink-0" />
-          API 키는 이 브라우저에만 저장돼요. 서버에는 요약 요청 시에만 전달되고, 저장하지 않아요.
+          API 키는 어디에도 저장되지 않아요. 요약 요청 시에만 사용되고 즉시 폐기돼요.
         </div>
       </CardContent>
     </Card>
