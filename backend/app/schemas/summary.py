@@ -1,5 +1,5 @@
 from enum import Enum
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class ProviderEnum(str, Enum):
@@ -12,7 +12,7 @@ class SummaryRequest(BaseModel):
     upload_id: str
     provider: ProviderEnum
     model: str
-    api_key: str
+    api_key: str = Field(max_length=256)
 
 
 class SummaryResponse(BaseModel):
