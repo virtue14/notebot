@@ -52,6 +52,8 @@ class AiSummary(Base):
     stt_result_id: Mapped[str | None] = mapped_column(
         ForeignKey("stt_results.id"), nullable=True
     )
+    provider: Mapped[str] = mapped_column(String(20))
+    model: Mapped[str] = mapped_column(String(50))
     content: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
 
