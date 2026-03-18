@@ -77,18 +77,18 @@ export default function Home() {
                   </div>
                   <CardTitle className="text-2xl">강의 노트 정리</CardTitle>
                   <CardDescription className="text-base">
-                    녹음이나 교재를 정리된 학습 노트로 받고 싶을 때
+                    텍스트나 PDF를 정리된 학습 노트로 받고 싶을 때
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-3 text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <span className="text-purple-500 mt-1">&#10003;</span>
-                      <span>음성 인식부터 내용 정리까지 한번에</span>
+                      <span>TXT, PDF 파일 지원</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-purple-500 mt-1">&#10003;</span>
-                      <span>MP3, MP4, TXT, PDF 모두 지원</span>
+                      <span>업로드한 내용을 체계적으로 정리</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-purple-500 mt-1">&#10003;</span>
