@@ -8,6 +8,7 @@ from app.config import settings
 from app.database import Base, engine
 from app.models import Upload, SttResult, AiSummary  # noqa: F401
 from app.routers import health, upload
+from app.routers.history import router as history_router
 from app.routers.summary import router as summary_router
 
 
@@ -34,3 +35,4 @@ app.add_middleware(
 app.include_router(health.router)
 app.include_router(upload.router)
 app.include_router(summary_router)
+app.include_router(history_router)
