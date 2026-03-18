@@ -7,6 +7,7 @@
 
 import { useCallback, useState } from "react";
 import { Upload, X, FileAudio, FileVideo, FileText, File } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "./ui/button";
 
 /** FileUploader에 전달되는 props. */
@@ -48,7 +49,11 @@ export function FileUploader({
 
   const handleFiles = useCallback(
     (files: File[]) => {
-      const newFiles = [...selectedFiles, ...files].slice(0, maxFiles);
+      const combined = [...selectedFiles, ...files];
+      if (combined.length > maxFiles) {
+        toast.error(`파일은 최대 ${maxFiles}개까지 업로드할 수 있어요.`);
+      }
+      const newFiles = combined.slice(0, maxFiles);
       setSelectedFiles(newFiles);
       onFilesSelected(newFiles);
     },

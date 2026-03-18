@@ -105,10 +105,13 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
   return (
     <Card className="shadow-sm">
       <CardHeader>
-        <CardTitle>AI 설정</CardTitle>
-        <CardDescription>
-          요약에 사용할 플랫폼과 모델을 선택해주세요.
-        </CardDescription>
+        <div className="flex items-center justify-between">
+          <CardTitle>AI 설정</CardTitle>
+          <span className="text-xs text-muted-foreground">
+            {PROVIDER_LABELS[provider]} · {PROVIDER_MODELS[provider].find((m) => m.id === selectedModels[provider])?.name}
+          </span>
+        </div>
+        <CardDescription>요약에 사용할 플랫폼과 모델을 선택해주세요.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* 플랫폼 + 모델 선택 */}
@@ -117,17 +120,12 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
             <div
               key={p}
               className={cn(
-                "relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all text-sm",
+                "flex flex-col items-center gap-2 p-3 rounded-xl transition-all text-sm",
                 provider === p
                   ? "ring-1 ring-primary/30 bg-primary/5"
                   : ""
               )}
             >
-              {provider === p && (
-                <span className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium">
-                  {PROVIDER_MODELS[p].find((m) => m.id === selectedModels[p])?.name || ""}
-                </span>
-              )}
               <div className="flex items-center gap-1.5">
                 {p === "openai" && <OpenAILogo className="w-3.5 h-3.5 flex-shrink-0" />}
                 {p === "anthropic" && <AnthropicLogo className="w-3.5 h-3.5 flex-shrink-0" />}
