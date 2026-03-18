@@ -11,10 +11,10 @@ import { OpenAILogo } from "@/components/icons/OpenAILogo";
 import { AnthropicLogo } from "@/components/icons/AnthropicLogo";
 import { GeminiLogo } from "@/components/icons/GeminiLogo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 const SETTINGS_KEY = "notebot_llm_settings";
 
@@ -40,6 +40,12 @@ const PROVIDER_MODELS: Record<string, ModelInfo[]> = {
     { id: "gemini-3.1-pro", name: "3.1 Pro", tag: "고성능" },
     { id: "gemini-3.1-flash-lite", name: "3.1 Flash Lite", tag: "초경량" },
   ],
+};
+
+const PROVIDER_LABELS: Record<string, string> = {
+  openai: "OpenAI",
+  anthropic: "Anthropic",
+  gemini: "Gemini",
 };
 
 const PROVIDER_KEY_URLS: Record<string, { url: string; label: string }> = {
@@ -107,42 +113,42 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <Tabs value={provider} onValueChange={handleProviderChange}>
-          <TabsList className="w-full h-11 p-1">
-            <TabsTrigger value="openai" className="flex-1 flex items-center gap-1.5">
-              <OpenAILogo className="w-4 h-4" />
-              OpenAI
-            </TabsTrigger>
-            <TabsTrigger value="anthropic" className="flex-1 flex items-center gap-1.5">
-              <AnthropicLogo className="w-4 h-4" />
-              Anthropic
-            </TabsTrigger>
-            <TabsTrigger value="gemini" className="flex-1 flex items-center gap-1.5">
-              <GeminiLogo className="w-4 h-4" />
-              Gemini
-            </TabsTrigger>
-          </TabsList>
-
-          {Object.keys(PROVIDER_MODELS).map((p) => (
-            <TabsContent key={p} value={p} className="pt-3">
-              <Select value={model} onValueChange={setModel}>
-                <SelectTrigger className="w-full">
+        {/* 플랫폼 + 모델 선택 */}
+        <div className="grid grid-cols-3 gap-2">
+          {Object.entries(PROVIDER_MODELS).map(([p, models]) => (
+            <div
+              key={p}
+              onClick={() => handleProviderChange(p)}
+              className={cn(
+                "flex items-center gap-1.5 px-3 py-2 rounded-lg border cursor-pointer transition-all text-sm",
+                provider === p
+                  ? "border-primary bg-muted/50"
+                  : "border-transparent hover:bg-muted/30"
+              )}
+            >
+              {p === "openai" && <OpenAILogo className="w-3.5 h-3.5 flex-shrink-0" />}
+              {p === "anthropic" && <AnthropicLogo className="w-3.5 h-3.5 flex-shrink-0" />}
+              {p === "gemini" && <GeminiLogo className="w-3.5 h-3.5 flex-shrink-0" />}
+              <span className="font-medium flex-shrink-0">{PROVIDER_LABELS[p]}</span>
+              <Select
+                value={provider === p ? model : models[0].id}
+                onValueChange={(v) => { setProvider(p); setModel(v); }}
+              >
+                <SelectTrigger
+                  className="h-auto border-0 bg-transparent p-0 shadow-none text-xs text-muted-foreground hover:text-foreground min-w-0 gap-0.5"
+                  onClick={(e) => e.stopPropagation()}
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {PROVIDER_MODELS[p].map((m) => (
-                    <SelectItem key={m.id} value={m.id}>
-                      <span className="flex items-center justify-between w-full">
-                        <span className="font-medium">{m.name}</span>
-                        <span className="text-xs text-muted-foreground ml-2">{m.tag}</span>
-                      </span>
-                    </SelectItem>
+                  {models.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </TabsContent>
+            </div>
           ))}
-        </Tabs>
+        </div>
 
         {/* API 키 — 플랫폼 공통 */}
         <div className="space-y-2">
@@ -165,9 +171,9 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
         </div>
 
         {/* 보안 안내 */}
-        <div className="flex items-center gap-2 mt-6 px-3 py-2.5 rounded-lg bg-muted/50 text-xs text-muted-foreground">
-          <Lock className="w-3 h-3 shrink-0" />
-          API 키는 어디에도 저장되지 않아요. 요약 요청 시에만 사용되고 즉시 폐기돼요.
+        <div className="flex items-center gap-2 px-3 py-2.5 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+          <Lock className="w-3 h-3 flex-shrink-0" />
+          <span>API 키는 어디에도 저장되지 않아요. 요약 요청 시에만 사용되고 즉시 폐기돼요.</span>
         </div>
       </CardContent>
     </Card>
