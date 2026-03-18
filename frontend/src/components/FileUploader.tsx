@@ -52,10 +52,10 @@ export function FileUploader({
       const combined = [...selectedFiles, ...files];
       if (combined.length > maxFiles) {
         toast.error(`파일은 최대 ${maxFiles}개까지 업로드할 수 있어요.`);
+        return;
       }
-      const newFiles = combined.slice(0, maxFiles);
-      setSelectedFiles(newFiles);
-      onFilesSelected(newFiles);
+      setSelectedFiles(combined);
+      onFilesSelected(combined);
     },
     [selectedFiles, maxFiles, onFilesSelected],
   );

@@ -52,6 +52,10 @@ export default function SttSummaryPage() {
       toast.error("파일을 선택해주세요.");
       return;
     }
+    if (!llmConfig.provider) {
+      toast.error("플랫폼을 선택해주세요.");
+      return;
+    }
     if (!llmConfig.apiKey) {
       toast.error("API 키를 입력해주세요.");
       return;
