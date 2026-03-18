@@ -62,7 +62,7 @@ export default function HistoryPage() {
 
       <div className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">변환 기록</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">변환 기록</h1>
           <p className="text-muted-foreground mt-1">
             총 {history.length}건의 이력
           </p>
@@ -77,8 +77,11 @@ export default function HistoryPage() {
 
       {history.length === 0 ? (
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
-            <h2 className="text-xl font-semibold text-foreground mb-2">
+          <CardContent className="flex flex-col items-center justify-center py-20 text-center">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
+              <FileText className="w-8 h-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-lg font-semibold text-foreground mb-2">
               아직 변환 이력이 없어요
             </h2>
             <p className="text-muted-foreground mb-6">
@@ -95,10 +98,10 @@ export default function HistoryPage() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-4">
-          {history.map((item) => (
-            <Card key={item.id}>
-              <CardContent className="flex items-center gap-4 py-4">
+        <Card>
+          <div className="divide-y divide-border/50">
+            {history.map((item) => (
+              <div key={item.id} className="flex items-center gap-4 py-4 px-6 hover:bg-muted/30 transition-colors">
                 <div className="flex-shrink-0">
                   {item.type === "stt" ? (
                     <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50">
@@ -131,10 +134,10 @@ export default function HistoryPage() {
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
+        </Card>
       )}
     </div>
   );

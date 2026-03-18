@@ -11,7 +11,7 @@ import { ThemeToggle } from "./ThemeToggle";
 export function Header() {
   return (
     <header className="border-b bg-background/80 backdrop-blur-sm">
-      <div className="container mx-auto px-4 py-4">
+      <div className="container mx-auto px-4 py-3">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3">
             <Bot className="w-7 h-7 text-foreground" />

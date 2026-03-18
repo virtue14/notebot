@@ -98,7 +98,7 @@ export function FileUploader({
   return (
     <div className="w-full">
       <div
-        className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all ${
+        className={`relative cursor-pointer border-2 border-dashed rounded-2xl p-10 md:p-12 text-center transition-all ${
           dragActive
             ? "border-blue-500 bg-blue-50 dark:bg-blue-950/30"
             : "border-border hover:border-muted-foreground bg-card"
@@ -118,14 +118,14 @@ export function FileUploader({
         />
         <div className="flex flex-col items-center gap-4">
           <div
-            className={`w-20 h-20 rounded-full flex items-center justify-center transition-colors ${
+            className={`w-16 h-16 rounded-2xl flex items-center justify-center transition-colors ${
               dragActive
                 ? "bg-blue-100 dark:bg-blue-900/50"
                 : "bg-muted"
             }`}
           >
             <Upload
-              className={`w-10 h-10 ${
+              className={`w-8 h-8 ${
                 dragActive
                   ? "text-blue-500 dark:text-blue-400"
                   : "text-muted-foreground"

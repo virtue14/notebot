@@ -6,7 +6,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ArrowLeft, Copy, Download, RotateCcw } from "lucide-react";
+import { AlertCircle, ArrowLeft, Copy, Download, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -177,10 +177,10 @@ export default function SttSummaryPage() {
         메인으로 돌아가기
       </Link>
 
-      <h1 className="text-3xl font-bold text-foreground mb-2">
+      <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">
         학습 노트
       </h1>
-      <p className="text-muted-foreground mb-8">
+      <p className="text-muted-foreground mb-10">
         텍스트나 PDF 파일을 업로드하면 체계적인 학습 노트로 정리해드려요
       </p>
 
@@ -215,9 +215,12 @@ export default function SttSummaryPage() {
 
       {pageState === "error" && (
         <Card>
-          <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+              <AlertCircle className="w-7 h-7 text-destructive" />
+            </div>
             <p className="text-lg font-semibold text-foreground mb-2">문제가 발생했어요</p>
-            <p className="text-muted-foreground mb-6">{errorMessage}</p>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm">{errorMessage}</p>
             <div className="flex gap-3">
               <Button variant="outline" onClick={handleReset}>
                 설정 변경하기

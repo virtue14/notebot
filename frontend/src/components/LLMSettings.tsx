@@ -7,6 +7,9 @@
 
 import { useState, useEffect } from "react";
 import { Eye, EyeOff, Lock } from "lucide-react";
+import { OpenAILogo } from "@/components/icons/OpenAILogo";
+import { AnthropicLogo } from "@/components/icons/AnthropicLogo";
+import { GeminiLogo } from "@/components/icons/GeminiLogo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -38,6 +41,12 @@ const PROVIDER_MODELS: Record<string, ModelInfo[]> = {
     { id: "gemini-3.1-pro", name: "Gemini 3.1 Pro", tag: "고성능" },
     { id: "gemini-3.1-flash-lite", name: "Gemini 3.1 Flash Lite", tag: "초경량" },
   ],
+};
+
+const PROVIDER_KEY_URLS: Record<string, { url: string; label: string }> = {
+  openai: { url: "https://platform.openai.com/api-keys", label: "OpenAI API 키 발급받기" },
+  anthropic: { url: "https://console.anthropic.com/settings/keys", label: "Anthropic API 키 발급받기" },
+  gemini: { url: "https://aistudio.google.com/apikey", label: "Gemini API 키 발급받기" },
 };
 
 const DEFAULT_PROVIDER = "anthropic";
@@ -101,7 +110,7 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
   };
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <CardHeader>
         <CardTitle>AI 설정</CardTitle>
         <CardDescription>
@@ -110,17 +119,17 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
       </CardHeader>
       <CardContent>
         <Tabs value={provider} onValueChange={handleProviderChange}>
-          <TabsList className="w-full">
+          <TabsList className="w-full h-11 p-1">
             <TabsTrigger value="openai" className="flex-1 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-green-500" />
+              <OpenAILogo className="w-4 h-4" />
               OpenAI
             </TabsTrigger>
             <TabsTrigger value="anthropic" className="flex-1 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-orange-500" />
+              <AnthropicLogo className="w-4 h-4" />
               Anthropic
             </TabsTrigger>
             <TabsTrigger value="gemini" className="flex-1 flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-blue-500" />
+              <GeminiLogo className="w-4 h-4" />
               Gemini
             </TabsTrigger>
           </TabsList>
@@ -150,6 +159,14 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
                     {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </Button>
                 </div>
+                <a
+                  href={PROVIDER_KEY_URLS[p].url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-muted-foreground hover:text-foreground underline transition-colors"
+                >
+                  {PROVIDER_KEY_URLS[p].label} &rarr;
+                </a>
               </div>
 
               {/* 모델 선택 */}
@@ -175,7 +192,7 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
                   type="checkbox"
                   checked={saveKey}
                   onChange={(e) => setSaveKey(e.target.checked)}
-                  className="rounded border-border"
+                  className="rounded border-border accent-primary"
                 />
                 다음에도 사용할게요
               </label>
@@ -184,10 +201,10 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
         </Tabs>
 
         {/* 보안 안내 */}
-        <p className="text-xs text-muted-foreground mt-4 flex items-center gap-1">
-          <Lock className="w-3 h-3" />
+        <div className="flex items-center gap-2 mt-6 px-3 py-2.5 rounded-lg bg-muted/50 text-xs text-muted-foreground">
+          <Lock className="w-3 h-3 shrink-0" />
           API 키는 이 브라우저에만 저장돼요. 서버에는 요약 요청 시에만 전달되고, 저장하지 않아요.
-        </p>
+        </div>
       </CardContent>
     </Card>
   );
