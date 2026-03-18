@@ -71,17 +71,21 @@ interface LLMSettingsProps {
 /** 플랫폼/모델/API키 설정을 담는 독립 컴포넌트. */
 export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
   const [provider, setProvider] = useState(DEFAULT_PROVIDER);
-  const [model, setModel] = useState(PROVIDER_MODELS[DEFAULT_PROVIDER][0].id);
+  const [selectedModels, setSelectedModels] = useState<Record<string, string>>({
+    openai: PROVIDER_MODELS.openai[0].id,
+    anthropic: PROVIDER_MODELS.anthropic[0].id,
+    gemini: PROVIDER_MODELS.gemini[0].id,
+  });
   const [apiKey, setApiKey] = useState("");
 
-  // localStorage에서 provider/model만 복원
+  // localStorage에서 provider/selectedModels 복원
   useEffect(() => {
     try {
       const saved = localStorage.getItem(SETTINGS_KEY);
       if (saved) {
         const settings = JSON.parse(saved);
         if (settings.provider) setProvider(settings.provider);
-        if (settings.model) setModel(settings.model);
+        if (settings.selectedModels) setSelectedModels(settings.selectedModels);
       }
     } catch {
       // 손상된 데이터 무시
@@ -90,19 +94,13 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
 
   // 설정 변경 시 부모에 전달
   useEffect(() => {
-    onConfigChange({ provider, model, apiKey });
-  }, [provider, model, apiKey, onConfigChange]);
+    onConfigChange({ provider, model: selectedModels[provider], apiKey });
+  }, [provider, selectedModels, apiKey, onConfigChange]);
 
-  // provider/model만 저장 (apiKey 절대 포함 안 함)
+  // provider/selectedModels만 저장 (apiKey 절대 포함 안 함)
   useEffect(() => {
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ provider, model }));
-  }, [provider, model]);
-
-  const handleProviderChange = (newProvider: string) => {
-    setProvider(newProvider);
-    // 플랫폼 변경 시 추천 모델로 자동 선택
-    setModel(PROVIDER_MODELS[newProvider][0].id);
-  };
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify({ provider, selectedModels }));
+  }, [provider, selectedModels]);
 
   return (
     <Card className="shadow-sm">
@@ -118,26 +116,33 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
           {Object.entries(PROVIDER_MODELS).map(([p, models]) => (
             <div
               key={p}
-              onClick={() => handleProviderChange(p)}
               className={cn(
-                "flex items-center gap-1.5 px-3 py-2 rounded-lg border cursor-pointer transition-all text-sm",
+                "relative flex flex-col items-center gap-2 p-3 rounded-xl transition-all text-sm",
                 provider === p
-                  ? "border-primary bg-muted/50"
-                  : "border-transparent hover:bg-muted/30"
+                  ? "ring-1 ring-primary/30 bg-primary/5"
+                  : ""
               )}
             >
-              {p === "openai" && <OpenAILogo className="w-3.5 h-3.5 flex-shrink-0" />}
-              {p === "anthropic" && <AnthropicLogo className="w-3.5 h-3.5 flex-shrink-0" />}
-              {p === "gemini" && <GeminiLogo className="w-3.5 h-3.5 flex-shrink-0" />}
-              <span className="font-medium flex-shrink-0">{PROVIDER_LABELS[p]}</span>
+              {provider === p && (
+                <span className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium">
+                  {PROVIDER_MODELS[p].find((m) => m.id === selectedModels[p])?.name || ""}
+                </span>
+              )}
+              <div className="flex items-center gap-1.5">
+                {p === "openai" && <OpenAILogo className="w-3.5 h-3.5 flex-shrink-0" />}
+                {p === "anthropic" && <AnthropicLogo className="w-3.5 h-3.5 flex-shrink-0" />}
+                {p === "gemini" && <GeminiLogo className="w-3.5 h-3.5 flex-shrink-0" />}
+                <span className="font-medium flex-shrink-0 text-xs">{PROVIDER_LABELS[p]}</span>
+              </div>
               <Select
-                value={provider === p ? model : models[0].id}
-                onValueChange={(v) => { setProvider(p); setModel(v); }}
+                value={selectedModels[p]}
+                onValueChange={(v) => {
+                  setProvider(p);
+                  setSelectedModels((prev) => ({ ...prev, [p]: v }));
+                }}
+                onOpenChange={(open) => { if (open) setProvider(p); }}
               >
-                <SelectTrigger
-                  className="h-auto border-0 bg-transparent p-0 shadow-none text-xs text-muted-foreground hover:text-foreground min-w-0 gap-0.5"
-                  onClick={(e) => e.stopPropagation()}
-                >
+                <SelectTrigger className="h-auto border-0 bg-transparent p-0 shadow-none text-xs text-muted-foreground hover:text-foreground min-w-0 gap-0.5">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
