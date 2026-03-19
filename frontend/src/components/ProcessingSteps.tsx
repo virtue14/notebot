@@ -27,19 +27,19 @@ export function ProcessingSteps({ steps, currentStep }: ProcessingStepsProps) {
       {steps.map((step, index) => (
         <div
           key={step.id}
-          className={`flex items-start gap-4 p-4 rounded-lg transition-all ${
+          className={`flex items-center gap-4 p-4 rounded-xl transition-all ${
             index === currentStep
-              ? "bg-blue-50 dark:bg-blue-950/30 border-2 border-blue-500"
+              ? "bg-muted"
               : step.completed
-                ? "bg-green-50 dark:bg-green-950/20 border border-green-300 dark:border-green-800"
-                : "bg-muted/50 border border-border opacity-60"
+                ? "opacity-100"
+                : "opacity-40"
           }`}
         >
-          <div className="flex-shrink-0 mt-0.5">
+          <div className="flex-shrink-0">
             {step.completed ? (
               <CheckCircle2 className="w-6 h-6 text-green-600 dark:text-green-400" />
             ) : index === currentStep ? (
-              <Loader2 className="w-6 h-6 text-blue-600 dark:text-blue-400 animate-spin" />
+              <Loader2 className="w-6 h-6 text-foreground animate-spin" />
             ) : (
               <div className="w-6 h-6 rounded-full border-2 border-border" />
             )}
@@ -47,11 +47,9 @@ export function ProcessingSteps({ steps, currentStep }: ProcessingStepsProps) {
           <div className="flex-1">
             <p
               className={`font-medium ${
-                index === currentStep
-                  ? "text-blue-900 dark:text-blue-100"
-                  : step.completed
-                    ? "text-green-900 dark:text-green-100"
-                    : "text-muted-foreground"
+                index === currentStep || step.completed
+                  ? "text-foreground"
+                  : "text-muted-foreground"
               }`}
             >
               {step.completed && step.completedMessage ? step.completedMessage : step.message}

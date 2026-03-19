@@ -213,8 +213,8 @@ export default function SttPage() {
         메인으로 돌아가기
       </Link>
 
-      <h1 className="text-3xl font-bold text-foreground mb-2">STT 변환</h1>
-      <p className="text-muted-foreground mb-8">
+      <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">STT 변환</h1>
+      <p className="text-muted-foreground mb-10">
         음성이나 영상 파일을 텍스트로 변환해드려요
       </p>
 
@@ -270,7 +270,7 @@ export default function SttPage() {
               </div>
             </CardHeader>
             <CardContent>
-              <pre className="whitespace-pre-wrap text-sm text-foreground bg-muted p-4 rounded-lg">
+              <pre className="whitespace-pre-wrap text-sm text-foreground bg-muted/70 p-6 rounded-xl leading-relaxed max-h-[600px] overflow-y-auto">
                 {result}
               </pre>
             </CardContent>

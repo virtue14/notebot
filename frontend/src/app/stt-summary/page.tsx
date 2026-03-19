@@ -1,12 +1,12 @@
 /**
  * @file stt-summary/page.tsx
- * @description STT 변환 + AI 요약 페이지. 파일 업로드 → 7단계 처리 → 마크다운 노트 결과.
+ * @description 학습 노트 페이지. 텍스트/PDF 업로드 → API 연동 → 마크다운 노트 결과.
  */
 
 "use client";
 
-import { useState } from "react";
-import { ArrowLeft, Copy, Download, RotateCcw } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { AlertCircle, ArrowLeft, Copy, Download, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -17,61 +17,17 @@ import {
   type ProcessingStep,
 } from "@/components/ProcessingSteps";
 import { MarkdownPreview } from "@/components/MarkdownPreview";
+import { LLMSettings, type LLMConfig } from "@/components/LLMSettings";
 
-type PageState = "upload" | "processing" | "done";
+type PageState = "upload" | "processing" | "done" | "error";
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const INITIAL_STEPS: ProcessingStep[] = [
   { id: 1, message: "파일을 업로드하고 있어요", completedMessage: "파일 업로드가 완료됐어요", completed: false },
-  { id: 2, message: "오디오를 추출하고 있어요", completedMessage: "오디오 추출이 끝났어요", completed: false },
-  { id: 3, message: "음성을 인식하고 있어요", completedMessage: "음성 인식이 끝났어요", completed: false },
-  { id: 4, message: "텍스트를 합치고 있어요", completedMessage: "텍스트 합치기가 끝났어요", completed: false },
-  { id: 5, message: "내용을 분석하고 있어요", completedMessage: "내용 분석이 끝났어요", completed: false },
-  { id: 6, message: "학습 노트를 만들고 있어요", completedMessage: "학습 노트가 완성됐어요", completed: false },
-  { id: 7, message: "마지막으로 정리하고 있어요", completedMessage: "모든 정리가 끝났어요", completed: false },
+  { id: 2, message: "내용을 분석하고 있어요", completedMessage: "내용 분석이 끝났어요", completed: false },
+  { id: 3, message: "학습 노트를 만들고 있어요", completedMessage: "학습 노트가 완성됐어요", completed: false },
 ];
-
-const DEMO_RESULT = `# 데이터 구조 강의 노트
-
-## 1. 배열 (Array)
-
-배열은 **동일한 타입**의 데이터를 연속된 메모리 공간에 저장하는 자료구조이다.
-
-### 특징
-- 인덱스를 통한 O(1) 접근
-- 고정 크기 (정적 배열)
-- 캐시 친화적 구조
-
-### 시간 복잡도
-- 접근: O(1)
-- 검색: O(n)
-- 삽입/삭제: O(n)
-
----
-
-## 2. 연결 리스트 (Linked List)
-
-각 노드가 **데이터**와 **다음 노드를 가리키는 포인터**로 구성된다.
-
-### 특징
-- 동적 크기 조절 가능
-- 삽입/삭제가 O(1) (위치를 알 때)
-- 순차 접근만 가능
-
----
-
-## 3. 스택과 큐
-
-> 스택은 LIFO, 큐는 FIFO 방식으로 동작한다.
-
-### 스택 (Stack)
-- push: 맨 위에 삽입
-- pop: 맨 위에서 제거
-- 활용: 함수 호출 스택, 괄호 검사, Undo
-
-### 큐 (Queue)
-- enqueue: 뒤에 삽입
-- dequeue: 앞에서 제거
-- 활용: BFS, 작업 스케줄링, 버퍼`;
 
 export default function SttSummaryPage() {
   const [pageState, setPageState] = useState<PageState>("upload");
@@ -79,24 +35,111 @@ export default function SttSummaryPage() {
   const [steps, setSteps] = useState<ProcessingStep[]>(INITIAL_STEPS);
   const [currentStep, setCurrentStep] = useState(0);
   const [result, setResult] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [llmConfig, setLlmConfig] = useState<LLMConfig>({ provider: "anthropic", model: "claude-sonnet-4-6", apiKey: "" });
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => { abortRef.current?.abort(); };
+  }, []);
+
+  const handleConfigChange = useCallback((config: LLMConfig) => {
+    setLlmConfig(config);
+  }, []);
 
   const handleUpload = async () => {
     if (files.length === 0) {
       toast.error("파일을 선택해주세요.");
       return;
     }
-
-    setPageState("processing");
-    const updatedSteps = [...INITIAL_STEPS];
-
-    for (let i = 0; i < updatedSteps.length; i++) {
-      setCurrentStep(i);
-      await new Promise((resolve) => setTimeout(resolve, 1200));
-      updatedSteps[i] = { ...updatedSteps[i], completed: true };
-      setSteps([...updatedSteps]);
+    if (!llmConfig.provider) {
+      toast.error("플랫폼을 선택해주세요.");
+      return;
+    }
+    if (!llmConfig.apiKey) {
+      toast.error("API 키를 입력해주세요.");
+      return;
     }
 
-    setResult(DEMO_RESULT);
+    abortRef.current = new AbortController();
+    const { signal } = abortRef.current;
+
+    setPageState("processing");
+    setErrorMessage("");
+    const updatedSteps = [...INITIAL_STEPS];
+
+    // Step 1: 파일 업로드
+    setCurrentStep(0);
+    let uploadId: string;
+    try {
+      const formData = new FormData();
+      formData.append("file", files[0]);
+      const uploadRes = await fetch(`${API_BASE}/api/v1/upload/`, {
+        method: "POST",
+        body: formData,
+        signal,
+      });
+      if (!uploadRes.ok) {
+        let message = "업로드에 실패했어요";
+        try { const err = await uploadRes.json(); message = err.detail || message; } catch {}
+        throw new Error(message);
+      }
+      const uploadData = await uploadRes.json();
+      uploadId = uploadData.id;
+      updatedSteps[0] = { ...updatedSteps[0], completed: true };
+      setSteps([...updatedSteps]);
+    } catch (e) {
+      if (signal.aborted) return;
+      const msg = e instanceof Error ? e.message : "업로드에 실패했어요";
+      setErrorMessage(msg);
+      setPageState("error");
+      return;
+    }
+
+    // Step 2-3: AI 요약 요청
+    setCurrentStep(1);
+    let summaryContent: string;
+    try {
+      const summaryRes = await fetch(`${API_BASE}/api/v1/summary/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          upload_id: uploadId,
+          provider: llmConfig.provider,
+          model: llmConfig.model,
+          api_key: llmConfig.apiKey,
+        }),
+        signal,
+      });
+      if (!summaryRes.ok) {
+        const err = await summaryRes.json().catch(() => ({}));
+        if (summaryRes.status === 401) {
+          throw new Error("API 키가 올바르지 않아요. 키를 다시 확인해주세요.");
+        }
+        if (summaryRes.status === 502) {
+          throw new Error("AI 서비스에 일시적인 문제가 있어요. 잠시 후 다시 시도해주세요.");
+        }
+        throw new Error(err.detail || "요약에 실패했어요");
+      }
+      const summaryData = await summaryRes.json();
+      summaryContent = summaryData.content;
+      updatedSteps[1] = { ...updatedSteps[1], completed: true };
+      setSteps([...updatedSteps]);
+    } catch (e) {
+      if (signal.aborted) return;
+      const msg = e instanceof Error ? e.message : "요약에 실패했어요";
+      setErrorMessage(msg);
+      setPageState("error");
+      return;
+    }
+
+    // Step 3: 학습 노트 완성
+    setCurrentStep(2);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    updatedSteps[2] = { ...updatedSteps[2], completed: true };
+    setSteps([...updatedSteps]);
+
+    setResult(summaryContent);
     setPageState("done");
   };
 
@@ -125,6 +168,7 @@ export default function SttSummaryPage() {
     setSteps(INITIAL_STEPS);
     setCurrentStep(0);
     setResult("");
+    setErrorMessage("");
   };
 
   return (
@@ -137,17 +181,18 @@ export default function SttSummaryPage() {
         메인으로 돌아가기
       </Link>
 
-      <h1 className="text-3xl font-bold text-foreground mb-2">
-        STT 변환 + 학습 노트
+      <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">
+        학습 노트
       </h1>
-      <p className="text-muted-foreground mb-8">
-        음성, 영상, 문서 파일을 분석해서 학습 노트로 정리해드려요
+      <p className="text-muted-foreground mb-10">
+        텍스트나 PDF 파일을 업로드하면 체계적인 학습 노트로 정리해드려요
       </p>
 
       {pageState === "upload" && (
         <div className="space-y-6">
+          <LLMSettings onConfigChange={handleConfigChange} />
           <FileUploader
-            accept="audio/*,video/*,.txt,.pdf"
+            accept=".txt,.pdf,text/plain,application/pdf"
             onFilesSelected={setFiles}
             maxFiles={10}
           />
@@ -168,6 +213,26 @@ export default function SttSummaryPage() {
           </CardHeader>
           <CardContent>
             <ProcessingSteps steps={steps} currentStep={currentStep} />
+          </CardContent>
+        </Card>
+      )}
+
+      {pageState === "error" && (
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="w-14 h-14 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+              <AlertCircle className="w-7 h-7 text-destructive" />
+            </div>
+            <p className="text-lg font-semibold text-foreground mb-2">문제가 발생했어요</p>
+            <p className="text-sm text-muted-foreground mb-6 max-w-sm">{errorMessage}</p>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={handleReset}>
+                설정 변경하기
+              </Button>
+              <Button onClick={handleUpload}>
+                다시 시도하기
+              </Button>
+            </div>
           </CardContent>
         </Card>
       )}
