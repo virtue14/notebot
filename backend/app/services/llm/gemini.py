@@ -5,7 +5,7 @@ from app.services.llm.base import BaseLLMProvider, LLMAuthError, LLMAPIError, LL
 
 
 class GeminiProvider(BaseLLMProvider):
-    SUPPORTED_MODELS = {"gemini-3.1-pro", "gemini-3-flash", "gemini-3.1-flash-lite"}
+    SUPPORTED_MODELS = {"gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.5-flash-lite", "gemini-3-flash", "gemini-3.1-pro", "gemini-3.1-flash-lite"}
 
     async def generate(self, system_prompt: str, user_prompt: str) -> str:
         try:

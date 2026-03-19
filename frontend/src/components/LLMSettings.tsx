@@ -36,9 +36,12 @@ const PROVIDER_MODELS: Record<string, ModelInfo[]> = {
     { id: "claude-haiku-4-5", name: "Haiku 4.5", tag: "초고속 · 저비용" },
   ],
   gemini: [
-    { id: "gemini-3-flash", name: "3 Flash", tag: "추천 · 무료" },
-    { id: "gemini-3.1-pro", name: "3.1 Pro", tag: "고성능" },
-    { id: "gemini-3.1-flash-lite", name: "3.1 Flash Lite", tag: "초경량" },
+    { id: "gemini-2.5-flash", name: "2.5 Flash", tag: "추천 · 무료" },
+    { id: "gemini-2.5-pro", name: "2.5 Pro", tag: "고성능 · 무료" },
+    { id: "gemini-2.5-flash-lite", name: "2.5 Flash Lite", tag: "초경량 · 무료" },
+    { id: "gemini-3-flash", name: "3 Flash", tag: "최신 · 유료" },
+    { id: "gemini-3.1-pro", name: "3.1 Pro", tag: "최신 고성능 · 유료" },
+    { id: "gemini-3.1-flash-lite", name: "3.1 Flash Lite", tag: "최신 경량 · 유료" },
   ],
 };
 
