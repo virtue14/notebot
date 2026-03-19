@@ -11,6 +11,11 @@ class LLMAPIError(Exception):
     pass
 
 
+class LLMRateLimitError(Exception):
+    """API 요청 한도 초과."""
+    pass
+
+
 class BaseLLMProvider(ABC):
     def __init__(self, api_key: str, model: str):
         self.api_key = api_key

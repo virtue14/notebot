@@ -36,7 +36,7 @@ const PROVIDER_MODELS: Record<string, ModelInfo[]> = {
     { id: "claude-haiku-4-5", name: "Haiku 4.5", tag: "초고속 · 저비용" },
   ],
   gemini: [
-    { id: "gemini-3-flash", name: "3 Flash", tag: "추천 · 빠름" },
+    { id: "gemini-3-flash", name: "3 Flash", tag: "추천 · 무료" },
     { id: "gemini-3.1-pro", name: "3.1 Pro", tag: "고성능" },
     { id: "gemini-3.1-flash-lite", name: "3.1 Flash Lite", tag: "초경량" },
   ],
@@ -136,14 +136,19 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
               {p === "gemini" && <GeminiLogo className="w-4 h-4 flex-shrink-0" />}
               <span
                 className={cn(
-                  "overflow-hidden whitespace-nowrap text-sm font-medium",
+                  "overflow-hidden whitespace-nowrap text-sm font-medium flex items-center",
                   "transition-all duration-300 ease-out",
                   provider === p || provider === ""
-                    ? "max-w-[100px] opacity-100 ml-1.5"
+                    ? "max-w-[150px] opacity-100 ml-1.5"
                     : "max-w-0 opacity-0 ml-0"
                 )}
               >
                 {PROVIDER_LABELS[p]}
+                {p === "gemini" && (
+                  <span className="text-[10px] bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-400 px-1.5 py-0.5 rounded-full ml-1 flex-shrink-0">
+                    무료
+                  </span>
+                )}
               </span>
             </button>
           ))}
@@ -158,6 +163,11 @@ export function LLMSettings({ onConfigChange }: LLMSettingsProps) {
         >
           <div className="overflow-hidden">
             <div className="space-y-4 pt-4">
+              {provider === "gemini" && (
+                <p className="text-xs text-green-600 dark:text-green-400">
+                  Google AI Studio에서 무료로 사용할 수 있어요 (일일 횟수 제한 있음)
+                </p>
+              )}
               <Select
                 value={selectedModels[provider || "anthropic"]}
                 onValueChange={(v) => setSelectedModels((prev) => ({ ...prev, [provider || "anthropic"]: v }))}
