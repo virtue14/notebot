@@ -1,6 +1,7 @@
 from google import genai
+from google.genai import errors as genai_errors
 from google.genai import types
-from app.services.llm.base import BaseLLMProvider, LLMAuthError, LLMAPIError
+from app.services.llm.base import BaseLLMProvider, LLMAuthError, LLMAPIError, LLMRateLimitError
 
 
 class GeminiProvider(BaseLLMProvider):
@@ -17,8 +18,13 @@ class GeminiProvider(BaseLLMProvider):
                 ),
             )
             return response.text or ""
-        except Exception as e:
-            err_msg = str(e).lower()
-            if "api key" in err_msg or "unauthorized" in err_msg or "403" in err_msg:
+        except genai_errors.ClientError as e:
+            if e.code == 429:
+                raise LLMRateLimitError("요청이 너무 많아요. 잠시 후 다시 시도해주세요.")
+            if e.code == 403 or "api key" in (e.message or "").lower():
                 raise LLMAuthError("API 키 인증에 실패했습니다. 키를 확인해주세요.")
+            raise LLMAPIError("AI 서비스 호출 중 오류가 발생했습니다.")
+        except genai_errors.ServerError:
+            raise LLMAPIError("AI 서비스 호출 중 오류가 발생했습니다.")
+        except Exception:
             raise LLMAPIError("AI 서비스 호출 중 오류가 발생했습니다.")

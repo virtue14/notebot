@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.schemas.summary import SummaryRequest, SummaryResponse
-from app.services.llm.base import LLMAuthError, LLMAPIError
+from app.services.llm.base import LLMAuthError, LLMAPIError, LLMRateLimitError
 from app.services.summary import run_summary
 
 router = APIRouter(prefix="/api/v1/summary", tags=["summary"])
@@ -24,6 +24,8 @@ async def create_summary(req: SummaryRequest, db: Session = Depends(get_db)):
     except ValueError as e:
         status = 404 if "찾을 수 없습니다" in str(e) or "없습니다" in str(e) else 400
         raise HTTPException(status_code=status, detail=str(e))
+    except LLMRateLimitError as e:
+        raise HTTPException(status_code=429, detail=str(e))
     except LLMAuthError as e:
         raise HTTPException(status_code=401, detail=str(e))
     except LLMAPIError as e:

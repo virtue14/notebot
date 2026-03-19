@@ -116,6 +116,9 @@ export default function SttSummaryPage() {
         if (summaryRes.status === 401) {
           throw new Error("API 키가 올바르지 않아요. 키를 다시 확인해주세요.");
         }
+        if (summaryRes.status === 429) {
+          throw new Error("요청이 너무 많아요. 잠시 후 다시 시도해주세요.");
+        }
         if (summaryRes.status === 502) {
           throw new Error("AI 서비스에 일시적인 문제가 있어요. 잠시 후 다시 시도해주세요.");
         }
