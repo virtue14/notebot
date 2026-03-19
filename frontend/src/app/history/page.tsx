@@ -1,6 +1,6 @@
 /**
  * @file history/page.tsx
- * @description 변환 이력 페이지. localStorage에 저장된 이력을 조회/삭제한다.
+ * @description 변환 이력 페이지. 백엔드 API에서 이력을 조회/삭제한다.
  */
 
 "use client";
@@ -26,9 +26,9 @@ function formatDate(dateStr: string): string {
 }
 
 export default function HistoryPage() {
-  const { history, removeFromHistory, clearHistory, mounted } = useHistory();
+  const { history, removeFromHistory, clearHistory, mounted, loading } = useHistory();
 
-  if (!mounted) {
+  if (!mounted || loading) {
     return (
       <div className="container mx-auto px-4 py-8 max-w-3xl">
         <div className="animate-pulse space-y-4">
@@ -40,13 +40,13 @@ export default function HistoryPage() {
     );
   }
 
-  const handleDelete = (id: string) => {
-    removeFromHistory(id);
+  const handleDelete = async (id: string) => {
+    await removeFromHistory(id);
     toast.success("이력을 삭제했어요");
   };
 
-  const handleClearAll = () => {
-    clearHistory();
+  const handleClearAll = async () => {
+    await clearHistory();
     toast.success("모든 이력을 삭제했어요");
   };
 
@@ -103,34 +103,38 @@ export default function HistoryPage() {
             {history.map((item) => (
               <div key={item.id} className="flex items-center gap-4 py-4 px-6 hover:bg-muted/30 transition-colors">
                 <div className="flex-shrink-0">
-                  {item.type === "stt" ? (
+                  {item.has_summary ? (
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50">
+                      <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    </div>
+                  ) : item.has_stt ? (
                     <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50">
                       <Mic className="w-5 h-5 text-blue-600 dark:text-blue-400" />
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50">
-                      <FileText className="w-5 h-5 text-purple-600 dark:text-purple-400" />
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-muted">
+                      <FileText className="w-5 h-5 text-muted-foreground" />
                     </div>
                   )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-medium text-foreground truncate">
-                      {item.fileName}
+                      {item.file_name}
                     </p>
-                    <Badge variant={item.type === "stt" ? "default" : "secondary"}>
-                      {item.type === "stt" ? "STT" : "학습 노트"}
+                    <Badge variant={item.has_summary ? "secondary" : "default"}>
+                      {item.has_summary ? "학습 노트" : item.has_stt ? "STT" : "업로드"}
                     </Badge>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    {formatDate(item.createdAt)}
+                    {formatDate(item.created_at)}
                   </p>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handleDelete(item.id)}
-                  aria-label={`${item.fileName} 이력 삭제`}
+                  aria-label={`${item.file_name} 이력 삭제`}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
