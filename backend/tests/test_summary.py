@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
@@ -63,16 +64,34 @@ class TestCreateSummary:
         })
         assert response.status_code == 404
 
-    def test_summary_no_stt_result(self, client: TestClient, db_session: Session):
+    @patch("app.services.file_reader.settings")
+    @patch("app.services.llm.openai.AsyncOpenAI")
+    def test_summary_no_stt_text_file(
+        self, mock_openai_cls, mock_fr_settings, client: TestClient, db_session: Session, tmp_path: Path
+    ):
+        """STT 결과 없는 텍스트 파일 → 파일에서 직접 읽어서 요약 성공."""
+        mock_fr_settings.UPLOAD_DIR = str(tmp_path)
+
+        txt_file = tmp_path / "note.txt"
+        txt_file.write_text("텍스트 파일 내용입니다.", encoding="utf-8")
+
         upload = Upload(
-            file_name="test.mp3",
-            file_path="/fake/test.mp3",
+            file_name="note.txt",
+            file_path=str(txt_file),
             file_size=100,
-            mime_type="audio/mpeg",
-            status="pending",
+            mime_type="text/plain",
+            status="completed",
         )
         db_session.add(upload)
         db_session.commit()
+
+        mock_choice = MagicMock()
+        mock_choice.message.content = "# 학습 노트\n\n텍스트 요약"
+        mock_response = MagicMock()
+        mock_response.choices = [mock_choice]
+        mock_client = AsyncMock()
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
+        mock_openai_cls.return_value = mock_client
 
         response = client.post("/api/v1/summary/", json={
             "upload_id": upload.id,
@@ -80,8 +99,11 @@ class TestCreateSummary:
             "model": "gpt-5-mini",
             "api_key": "test-key",
         })
-        assert response.status_code == 404
-        assert "STT" in response.json()["detail"]
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["upload_id"] == upload.id
+        assert "학습 노트" in data["content"]
 
     def test_summary_invalid_provider(self, client: TestClient):
         response = client.post("/api/v1/summary/", json={
