@@ -165,7 +165,7 @@ class TestLLMFactory:
 
     def test_create_gemini(self):
         from app.services.llm.factory import create_provider
-        provider = create_provider("gemini", "key", "gemini-3-flash")
+        provider = create_provider("gemini", "key", "gemini-2.5-flash")
         assert provider.__class__.__name__ == "GeminiProvider"
 
     def test_invalid_provider(self):
