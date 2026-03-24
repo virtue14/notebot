@@ -7,6 +7,7 @@
 
 import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from "react";
 import MarkdownIt from "markdown-it";
+import DOMPurify from "dompurify";
 import hljs from "highlight.js";
 import "highlight.js/styles/github-dark.css";
 
@@ -128,7 +129,7 @@ export const MarkdownPreview = forwardRef<MarkdownPreviewHandle, MarkdownPreview
     }
   }, [content]);
 
-  const finalHtml = Object.entries(mermaidSvgs).reduce(
+  const mergedHtml = Object.entries(mermaidSvgs).reduce(
     (acc, [i, svg]) =>
       acc.replace(
         `<div id="mermaid-placeholder-${i}"></div>`,
@@ -136,6 +137,12 @@ export const MarkdownPreview = forwardRef<MarkdownPreviewHandle, MarkdownPreview
       ),
     html
   );
+
+  // XSS 방지: DOMPurify로 sanitize (mermaid SVG 허용)
+  const finalHtml = DOMPurify.sanitize(mergedHtml, {
+    ADD_TAGS: ["svg", "g", "path", "rect", "circle", "line", "polyline", "polygon", "text", "tspan", "marker", "defs", "clipPath", "foreignObject", "style"],
+    ADD_ATTR: ["viewBox", "xmlns", "fill", "stroke", "d", "cx", "cy", "r", "x", "y", "x1", "y1", "x2", "y2", "width", "height", "transform", "class", "id", "style", "marker-end", "font-size", "text-anchor", "dominant-baseline", "points"],
+  });
 
   if (!finalHtml) {
     return (
