@@ -5,130 +5,173 @@
 
 "use client";
 
-import React from "react";
+import { useEffect, useImperativeHandle, useRef, useState, forwardRef } from "react";
+import MarkdownIt from "markdown-it";
+import hljs from "highlight.js";
+import "highlight.js/styles/github-dark.css";
 
 interface MarkdownPreviewProps {
   content: string;
 }
 
-/** 간이 마크다운 파서로 헤딩, 리스트, 볼드, 인용문 등을 렌더링한다. */
-export function MarkdownPreview({ content }: MarkdownPreviewProps) {
-  const renderMarkdown = (text: string) => {
-    const lines = text.split("\n");
-    const elements: React.ReactElement[] = [];
-    let listItems: string[] = [];
-    let inList = false;
-    let listType: "ul" | "ol" = "ul";
+/** 헤딩에서 TOC 항목을 추출한다. */
+interface TocItem {
+  level: number;
+  id: string;
+  text: string;
+}
 
-    const flushList = () => {
-      if (listItems.length > 0) {
-        const ListTag = listType === "ol" ? "ol" : "ul";
-        const listClass =
-          listType === "ol"
-            ? "list-decimal list-inside space-y-1 my-3 ml-4"
-            : "list-disc list-inside space-y-1 my-3 ml-4";
-        elements.push(
-          <ListTag
-            key={`list-${elements.length}`}
-            className={listClass}
-          >
-            {listItems.map((item, i) => (
-              <li key={i} className="text-muted-foreground">
-                {item}
-              </li>
-            ))}
-          </ListTag>,
-        );
-        listItems = [];
-        inList = false;
-      }
-    };
+function extractToc(htmlString: string): TocItem[] {
+  const items: TocItem[] = [];
+  const regex = /<h([1-3])\s+id="([^"]*)"[^>]*>(.*?)<\/h[1-3]>/g;
+  let match;
+  while ((match = regex.exec(htmlString)) !== null) {
+    const text = match[3].replace(/<[^>]*>/g, "");
+    items.push({ level: parseInt(match[1]), id: match[2], text });
+  }
+  return items;
+}
 
-    lines.forEach((line, index) => {
-      const trimmed = line.trim();
+/** markdown-it 인스턴스 (GFM 표, 코드 하이라이팅) */
+const md = new MarkdownIt({
+  html: true,
+  linkify: true,
+  highlight(str: string, lang: string) {
+    if (lang === "mermaid") return str;
+    if (lang && hljs.getLanguage(lang)) {
+      return hljs.highlight(str, { language: lang, ignoreIllegals: true }).value;
+    }
+    return "";
+  },
+});
 
-      if (trimmed.startsWith("# ")) {
-        if (inList) { flushList(); inList = false; }
-        elements.push(
-          <h1 key={index} className="text-3xl font-bold mt-6 mb-4 text-foreground">
-            {trimmed.slice(2)}
-          </h1>,
-        );
-      } else if (trimmed.startsWith("## ")) {
-        if (inList) { flushList(); inList = false; }
-        elements.push(
-          <h2 key={index} className="text-2xl font-bold mt-5 mb-3 text-foreground border-b border-border pb-2">
-            {trimmed.slice(3)}
-          </h2>,
-        );
-      } else if (trimmed.startsWith("### ")) {
-        if (inList) { flushList(); inList = false; }
-        elements.push(
-          <h3 key={index} className="text-xl font-semibold mt-4 mb-2 text-foreground">
-            {trimmed.slice(4)}
-          </h3>,
-        );
-      } else if (trimmed.startsWith("#### ")) {
-        if (inList) { flushList(); inList = false; }
-        elements.push(
-          <h4 key={index} className="text-lg font-semibold mt-3 mb-2 text-foreground">
-            {trimmed.slice(5)}
-          </h4>,
-        );
-      } else if (trimmed.startsWith("- ")) {
-        if (!inList || listType !== "ul") { flushList(); }
-        inList = true;
-        listType = "ul";
-        listItems.push(trimmed.slice(2));
-      } else if (/^\d+\.\s/.test(trimmed)) {
-        if (!inList || listType !== "ol") { flushList(); }
-        inList = true;
-        listType = "ol";
-        listItems.push(trimmed.replace(/^\d+\.\s/, ""));
-      } else if (trimmed.startsWith("> ")) {
-        if (inList) { flushList(); inList = false; }
-        elements.push(
-          <blockquote key={index} className="border-l-4 border-blue-500 pl-4 my-3 italic text-muted-foreground">
-            {trimmed.slice(2)}
-          </blockquote>,
-        );
-      } else if (trimmed.includes("**")) {
-        if (inList) { flushList(); inList = false; }
-        const parts = trimmed.split("**");
-        elements.push(
-          <p key={index} className="my-2 text-foreground leading-relaxed">
-            {parts.map((part, i) =>
-              i % 2 === 1 ? (
-                <strong key={i} className="font-bold">{part}</strong>
-              ) : (
-                part
-              ),
-            )}
-          </p>,
-        );
-      } else if (trimmed === "") {
-        if (inList) { flushList(); inList = false; }
-        elements.push(<div key={index} className="h-2" />);
-      } else if (trimmed === "---") {
-        if (inList) { flushList(); inList = false; }
-        elements.push(<hr key={index} className="my-4 border-border" />);
-      } else if (trimmed) {
-        if (inList) { flushList(); inList = false; }
-        elements.push(
-          <p key={index} className="my-2 text-foreground leading-relaxed">
-            {trimmed}
-          </p>,
-        );
-      }
-    });
+// 헤딩에 id 속성 추가
+md.renderer.rules.heading_open = (tokens, idx) => {
+  const token = tokens[idx];
+  const level = token.tag;
+  const nextToken = tokens[idx + 1];
+  const text = nextToken?.children?.map((c) => c.content).join("") || "";
+  const id = text.replace(/\s+/g, "-").replace(/[^\w가-힣-]/g, "").toLowerCase();
+  return `<${level} id="${id}">`;
+};
 
-    if (inList) flushList();
-    return elements;
-  };
+/** LLM 출력의 마크다운 호환성 문제를 전처리한다. */
+function normalizeMarkdown(raw: string): string {
+  return raw
+    // LLM 서문 제거 (첫 번째 # 헤딩 이전 텍스트)
+    .replace(/^[\s\S]*?(?=^#\s)/m, "")
+    // 유니코드 → ASCII 정규화
+    .replace(/[\u2018\u2019\u02BC]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u0060\u02CB\u2032\u2035]/g, "`")
+    .replace(/\uFF0A/g, "*")
+    .replace(/\u2014/g, "--")
+    .replace(/\u2013/g, "-")
+    // 볼드 정규화
+    .replace(/\*\*[\s\u00A0\u200B]+(?=[가-힣\w(])/g, "**")               // 여는 ** 뒤 모든 공백 제거
+    .replace(/([가-힣\w)])[\s\u00A0\u200B]+\*\*(?=[\s|,.:;)]|$)/g, "$1**") // 닫는 ** 앞 모든 공백 제거
+    .replace(/\*\*([^*]+)\*\*([가-힣\u4e00-\u9fff])/g, "**$1** $2");
+}
+
+/** 마크다운에서 mermaid 코드 블록을 추출하고 placeholder로 치환한다. */
+function extractMermaidBlocks(text: string): { cleaned: string; blocks: string[] } {
+  const blocks: string[] = [];
+  const cleaned = text.replace(/`{3,}mermaid\s*\n([\s\S]*?)`{3,}/g, (_, code) => {
+    blocks.push(code.trim());
+    return `\n<div id="mermaid-placeholder-${blocks.length - 1}"></div>\n`;
+  });
+  return { cleaned, blocks };
+}
+
+/** 외부에서 본문 영역에 접근하기 위한 핸들. */
+export interface MarkdownPreviewHandle {
+  getContentElement: () => HTMLDivElement | null;
+}
+
+/** 마크다운을 HTML로 렌더링한다. TOC, GFM 표, 코드 하이라이팅, mermaid를 지원한다. */
+export const MarkdownPreview = forwardRef<MarkdownPreviewHandle, MarkdownPreviewProps>(
+  function MarkdownPreview({ content }, ref) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [html, setHtml] = useState("");
+  const [toc, setToc] = useState<TocItem[]>([]);
+  const [mermaidSvgs, setMermaidSvgs] = useState<Record<number, string>>({});
+
+  useImperativeHandle(ref, () => ({
+    getContentElement: () => contentRef.current,
+  }));
+
+  useEffect(() => {
+    const normalized = normalizeMarkdown(content);
+    const { cleaned, blocks } = extractMermaidBlocks(normalized);
+    let rendered = md.render(cleaned);
+
+    // markdown-it이 파싱 못한 ** bold** 패턴을 HTML에서 직접 변환
+    rendered = rendered.replace(/\*\*\s*([^*<]+?)\s*\*\*/g, "<strong>$1</strong>");
+    setHtml(rendered);
+    setToc(extractToc(rendered));
+
+    if (blocks.length > 0) {
+      import("mermaid").then(({ default: mermaid }) => {
+        mermaid.initialize({ startOnLoad: false, theme: "neutral", fontFamily: "inherit", suppressErrorRendering: true });
+        const svgs: Record<number, string> = {};
+        Promise.all(
+          blocks.map(async (code, i) => {
+            try {
+              const { svg } = await mermaid.render(`mermaid-svg-${Date.now()}-${i}`, code);
+              svgs[i] = svg;
+            } catch {
+              svgs[i] = `<pre class="bg-muted p-4 rounded-lg text-sm overflow-x-auto"><code>${code}</code></pre>`;
+            }
+          })
+        ).then(() => setMermaidSvgs(svgs));
+      }).catch(() => {});
+    }
+  }, [content]);
+
+  const finalHtml = Object.entries(mermaidSvgs).reduce(
+    (acc, [i, svg]) =>
+      acc.replace(
+        `<div id="mermaid-placeholder-${i}"></div>`,
+        `<div class="my-4 flex justify-center overflow-x-auto">${svg}</div>`
+      ),
+    html
+  );
+
+  if (!finalHtml) {
+    return (
+      <pre className="whitespace-pre-wrap text-sm text-foreground leading-relaxed">
+        {content}
+      </pre>
+    );
+  }
 
   return (
-    <div className="prose prose-slate dark:prose-invert max-w-none">
-      {renderMarkdown(content)}
+    <div className="flex gap-8">
+      <div
+        ref={contentRef}
+        className="prose prose-slate dark:prose-invert max-w-none min-w-0 flex-1"
+        dangerouslySetInnerHTML={{ __html: finalHtml }}
+      />
+
+      {toc.length > 2 && (
+        <nav className="hidden xl:block w-52 flex-shrink-0">
+          <div className="sticky top-8">
+            <p className="text-xs font-semibold text-foreground mb-3 uppercase tracking-wider">목차</p>
+            <ul className="space-y-1.5 border-l border-border pl-3">
+              {toc.map((item) => (
+                <li key={item.id} style={{ paddingLeft: `${(item.level - 1) * 12}px` }}>
+                  <a
+                    href={`#${item.id}`}
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors leading-snug block"
+                  >
+                    {item.text}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </nav>
+      )}
     </div>
   );
-}
+});

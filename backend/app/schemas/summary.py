@@ -9,7 +9,7 @@ class ProviderEnum(str, Enum):
 
 
 class SummaryRequest(BaseModel):
-    upload_id: str
+    upload_ids: list[str] = Field(min_length=1, max_length=10)
     provider: ProviderEnum
     model: str
     api_key: str = Field(max_length=256)
