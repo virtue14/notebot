@@ -1,5 +1,3 @@
-# Notebot
-
 [![Release](https://img.shields.io/github/v/release/virtue14/notebot)](https://github.com/virtue14/notebot/releases/latest)
 
 강의 녹음, 교재 PDF 등을 업로드하면 텍스트로 변환하고 구조화된 학습 노트를 자동 생성하는 웹 서비스.
