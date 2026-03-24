@@ -101,7 +101,7 @@ export default function HistoryPage() {
         <Card>
           <div className="divide-y divide-border/50">
             {history.map((item) => (
-              <div key={item.id} className="flex items-center gap-4 py-4 px-6 hover:bg-muted/30 transition-colors">
+              <Link key={item.id} href={`/history/${item.id}`} className="flex items-center gap-4 py-4 px-6 hover:bg-muted/30 transition-colors cursor-pointer">
                 <div className="flex-shrink-0">
                   {item.has_summary ? (
                     <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50">
@@ -133,12 +133,12 @@ export default function HistoryPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => handleDelete(item.id)}
+                  onClick={(e) => { e.preventDefault(); handleDelete(item.id); }}
                   aria-label={`${item.file_name} 이력 삭제`}
                 >
                   <Trash2 className="w-4 h-4" />
                 </Button>
-              </div>
+              </Link>
             ))}
           </div>
         </Card>
