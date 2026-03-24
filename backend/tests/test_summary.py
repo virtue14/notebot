@@ -42,7 +42,7 @@ class TestCreateSummary:
         mock_openai_cls.return_value = mock_client
 
         response = client.post("/api/v1/summary/", json={
-            "upload_id": upload_id,
+            "upload_ids": [upload_id],
             "provider": "openai",
             "model": "gpt-5-mini",
             "api_key": "test-key",
@@ -57,7 +57,7 @@ class TestCreateSummary:
 
     def test_summary_upload_not_found(self, client: TestClient):
         response = client.post("/api/v1/summary/", json={
-            "upload_id": "nonexistent",
+            "upload_ids": ["nonexistent"],
             "provider": "openai",
             "model": "gpt-5-mini",
             "api_key": "test-key",
@@ -94,7 +94,7 @@ class TestCreateSummary:
         mock_openai_cls.return_value = mock_client
 
         response = client.post("/api/v1/summary/", json={
-            "upload_id": upload.id,
+            "upload_ids": [upload.id],
             "provider": "openai",
             "model": "gpt-5-mini",
             "api_key": "test-key",
@@ -107,7 +107,7 @@ class TestCreateSummary:
 
     def test_summary_invalid_provider(self, client: TestClient):
         response = client.post("/api/v1/summary/", json={
-            "upload_id": "some-id",
+            "upload_ids": ["some-id"],
             "provider": "invalid",
             "model": "gpt-5-mini",
             "api_key": "test-key",
@@ -118,7 +118,7 @@ class TestCreateSummary:
         upload_id, _ = self._create_upload_with_stt(db_session)
 
         response = client.post("/api/v1/summary/", json={
-            "upload_id": upload_id,
+            "upload_ids": [upload_id],
             "provider": "openai",
             "model": "invalid-model",
             "api_key": "test-key",
@@ -142,7 +142,7 @@ class TestCreateSummary:
         mock_openai_cls.return_value = mock_client
 
         response = client.post("/api/v1/summary/", json={
-            "upload_id": upload_id,
+            "upload_ids": [upload_id],
             "provider": "openai",
             "model": "gpt-5-mini",
             "api_key": "bad-key",

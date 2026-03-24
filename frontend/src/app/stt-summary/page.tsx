@@ -6,7 +6,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AlertCircle, ArrowLeft, Copy, Download, RotateCcw } from "lucide-react";
+import { AlertCircle, ArrowLeft, Copy, Download, FileDown, Loader2, RotateCcw } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -16,27 +16,32 @@ import {
   ProcessingSteps,
   type ProcessingStep,
 } from "@/components/ProcessingSteps";
-import { MarkdownPreview } from "@/components/MarkdownPreview";
+import { MarkdownPreview, type MarkdownPreviewHandle } from "@/components/MarkdownPreview";
 import { LLMSettings, type LLMConfig } from "@/components/LLMSettings";
+import { cn } from "@/lib/utils";
 
 type PageState = "upload" | "processing" | "done" | "error";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const INITIAL_STEPS: ProcessingStep[] = [
-  { id: 1, message: "파일을 업로드하고 있어요", completedMessage: "파일 업로드가 완료됐어요", completed: false },
-  { id: 2, message: "내용을 분석하고 있어요", completedMessage: "내용 분석이 끝났어요", completed: false },
-  { id: 3, message: "학습 노트를 만들고 있어요", completedMessage: "학습 노트가 완성됐어요", completed: false },
+  { id: 1, message: "내용을 분석하고 있어요", completedMessage: "내용 분석이 끝났어요", completed: false },
+  { id: 2, message: "학습 노트를 만들고 있어요", completedMessage: "학습 노트가 완성됐어요", completed: false },
 ];
 
 export default function SttSummaryPage() {
   const [pageState, setPageState] = useState<PageState>("upload");
   const [files, setFiles] = useState<File[]>([]);
+  const [uploadIds, setUploadIds] = useState<string[]>([]);
+  const [uploading, setUploading] = useState(false);
   const [steps, setSteps] = useState<ProcessingStep[]>(INITIAL_STEPS);
   const [currentStep, setCurrentStep] = useState(0);
   const [result, setResult] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [llmConfig, setLlmConfig] = useState<LLMConfig>({ provider: "anthropic", model: "claude-sonnet-4-6", apiKey: "" });
+  const [llmConfig, setLlmConfig] = useState<LLMConfig>({ provider: "", model: "", apiKey: "" });
+  const [llmHighlight, setLlmHighlight] = useState(false);
+  const llmSettingsRef = useRef<HTMLDivElement>(null);
+  const previewRef = useRef<MarkdownPreviewHandle>(null);
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -47,17 +52,55 @@ export default function SttSummaryPage() {
     setLlmConfig(config);
   }, []);
 
-  const handleUpload = async () => {
-    if (files.length === 0) {
-      toast.error("파일을 선택해주세요.");
+  // 파일 선택 시 즉시 업로드
+  const handleFilesSelected = async (selected: File[]) => {
+    setFiles(selected);
+    if (selected.length === 0) {
+      setUploadIds([]);
       return;
     }
-    if (!llmConfig.provider) {
-      toast.error("플랫폼을 선택해주세요.");
-      return;
+
+    setUploading(true);
+    setUploadIds([]);
+
+    const ids: string[] = [];
+    for (const file of selected) {
+      try {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch(`${API_BASE}/api/v1/upload/`, {
+          method: "POST",
+          body: formData,
+        });
+        if (!res.ok) {
+          let message = "업로드에 실패했어요";
+          try { const err = await res.json(); message = err.detail || message; } catch {}
+          throw new Error(message);
+        }
+        const data = await res.json();
+        ids.push(data.id);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "업로드에 실패했어요";
+        toast.error(`${file.name}: ${msg}`);
+        setFiles([]);
+        setUploadIds([]);
+        setUploading(false);
+        return;
+      }
     }
-    if (!llmConfig.apiKey) {
-      toast.error("API 키를 입력해주세요.");
+
+    setUploadIds(ids);
+    setUploading(false);
+  };
+
+  // 학습 노트 생성 (AI 요약만 처리)
+  const handleGenerate = async () => {
+    if (uploadIds.length === 0) return;
+    if (!llmConfig.provider || !llmConfig.apiKey) {
+      toast.error(!llmConfig.provider ? "플랫폼을 선택해주세요." : "API 키를 입력해주세요.");
+      setLlmHighlight(true);
+      llmSettingsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      setTimeout(() => setLlmHighlight(false), 2000);
       return;
     }
 
@@ -68,43 +111,16 @@ export default function SttSummaryPage() {
     setErrorMessage("");
     const updatedSteps = [...INITIAL_STEPS];
 
-    // Step 1: 파일 업로드
+    // Step 1: AI 분석
     setCurrentStep(0);
-    let uploadId: string;
-    try {
-      const formData = new FormData();
-      formData.append("file", files[0]);
-      const uploadRes = await fetch(`${API_BASE}/api/v1/upload/`, {
-        method: "POST",
-        body: formData,
-        signal,
-      });
-      if (!uploadRes.ok) {
-        let message = "업로드에 실패했어요";
-        try { const err = await uploadRes.json(); message = err.detail || message; } catch {}
-        throw new Error(message);
-      }
-      const uploadData = await uploadRes.json();
-      uploadId = uploadData.id;
-      updatedSteps[0] = { ...updatedSteps[0], completed: true };
-      setSteps([...updatedSteps]);
-    } catch (e) {
-      if (signal.aborted) return;
-      const msg = e instanceof Error ? e.message : "업로드에 실패했어요";
-      setErrorMessage(msg);
-      setPageState("error");
-      return;
-    }
-
-    // Step 2-3: AI 요약 요청
-    setCurrentStep(1);
     let summaryContent: string;
     try {
+      // 첫 번째 파일로 요약 요청
       const summaryRes = await fetch(`${API_BASE}/api/v1/summary/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          upload_id: uploadId,
+          upload_ids: uploadIds,
           provider: llmConfig.provider,
           model: llmConfig.model,
           api_key: llmConfig.apiKey,
@@ -126,7 +142,7 @@ export default function SttSummaryPage() {
       }
       const summaryData = await summaryRes.json();
       summaryContent = summaryData.content;
-      updatedSteps[1] = { ...updatedSteps[1], completed: true };
+      updatedSteps[0] = { ...updatedSteps[0], completed: true };
       setSteps([...updatedSteps]);
     } catch (e) {
       if (signal.aborted) return;
@@ -136,10 +152,10 @@ export default function SttSummaryPage() {
       return;
     }
 
-    // Step 3: 학습 노트 완성
-    setCurrentStep(2);
+    // Step 2: 학습 노트 완성
+    setCurrentStep(1);
     await new Promise((resolve) => setTimeout(resolve, 500));
-    updatedSteps[2] = { ...updatedSteps[2], completed: true };
+    updatedSteps[1] = { ...updatedSteps[1], completed: true };
     setSteps([...updatedSteps]);
 
     setResult(summaryContent);
@@ -155,7 +171,7 @@ export default function SttSummaryPage() {
     }
   };
 
-  const handleDownload = () => {
+  const handleDownloadMd = () => {
     const blob = new Blob([result], { type: "text/markdown;charset=utf-8" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -165,17 +181,66 @@ export default function SttSummaryPage() {
     URL.revokeObjectURL(url);
   };
 
+  const handleDownloadPdf = () => {
+    const el = previewRef.current?.getContentElement();
+    if (!el) return;
+
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.left = "-9999px";
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentDocument;
+    if (!doc) { document.body.removeChild(iframe); return; }
+
+    doc.open();
+    doc.write(`<!DOCTYPE html>
+<html><head>
+<meta charset="utf-8">
+<title>학습 노트</title>
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding: 40px; color: #1a1a1a; line-height: 1.7; max-width: 800px; margin: 0 auto; font-size: 14px; }
+  h1 { font-size: 22px; border-bottom: 2px solid #e5e7eb; padding-bottom: 8px; }
+  h2 { font-size: 18px; border-bottom: 1px solid #e5e7eb; padding-bottom: 6px; margin-top: 28px; }
+  h3 { font-size: 15px; margin-top: 20px; }
+  table { border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 13px; }
+  th, td { border: 1px solid #d1d5db; padding: 6px 10px; text-align: left; }
+  th { background: #f3f4f6; font-weight: 600; }
+  code { background: #f3f4f6; padding: 1px 4px; border-radius: 3px; font-size: 12px; font-family: monospace; }
+  pre { background: #f8f8f8; color: #1a1a1a; padding: 12px; border-radius: 6px; overflow-x: auto; font-size: 12px; border: 1px solid #e5e7eb; }
+  pre code { background: none; padding: 0; }
+  blockquote { border-left: 3px solid #3b82f6; padding-left: 12px; color: #6b7280; }
+  strong { font-weight: 700; }
+  ul, ol { padding-left: 24px; }
+  li { margin-bottom: 4px; }
+  @media print { body { padding: 20px; } @page { margin: 15mm; } }
+</style>
+</head><body>${el.innerHTML}</body></html>`);
+    doc.close();
+
+    iframe.onload = () => {
+      setTimeout(() => {
+        iframe.contentWindow?.print();
+        setTimeout(() => document.body.removeChild(iframe), 1000);
+      }, 300);
+    };
+  };
+
   const handleReset = () => {
     setPageState("upload");
     setFiles([]);
+    setUploadIds([]);
+    setUploading(false);
     setSteps(INITIAL_STEPS);
     setCurrentStep(0);
     setResult("");
     setErrorMessage("");
   };
 
+  const canGenerate = uploadIds.length > 0 && !uploading;
+
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className={cn("container mx-auto px-4 py-8", pageState === "done" ? "max-w-6xl" : "max-w-4xl")}>
       <Link
         href="/"
         className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
@@ -193,17 +258,32 @@ export default function SttSummaryPage() {
 
       {pageState === "upload" && (
         <div className="space-y-6">
-          <LLMSettings onConfigChange={handleConfigChange} />
+          <div
+            ref={llmSettingsRef}
+            className={cn(
+              "rounded-xl transition-all duration-500",
+              llmHighlight && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+            )}
+          >
+            <LLMSettings onConfigChange={handleConfigChange} />
+          </div>
           <FileUploader
             accept=".txt,.pdf,text/plain,application/pdf"
-            onFilesSelected={setFiles}
+            onFilesSelected={handleFilesSelected}
             maxFiles={10}
           />
           {files.length > 0 && (
             <div className="flex justify-center">
-              <Button size="lg" onClick={handleUpload}>
-                학습 노트 생성
-              </Button>
+              {uploading ? (
+                <Button size="lg" disabled>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  업로드 중...
+                </Button>
+              ) : (
+                <Button size="lg" onClick={handleGenerate} disabled={!canGenerate}>
+                  학습 노트 생성
+                </Button>
+              )}
             </div>
           )}
         </div>
@@ -232,7 +312,7 @@ export default function SttSummaryPage() {
               <Button variant="outline" onClick={handleReset}>
                 설정 변경하기
               </Button>
-              <Button onClick={handleUpload}>
+              <Button onClick={handleGenerate}>
                 다시 시도하기
               </Button>
             </div>
@@ -242,26 +322,24 @@ export default function SttSummaryPage() {
 
       {pageState === "done" && (
         <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>학습 노트</CardTitle>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={handleCopy}>
-                    <Copy className="w-4 h-4" />
-                    복사
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={handleDownload}>
-                    <Download className="w-4 h-4" />
-                    다운로드
-                  </Button>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <MarkdownPreview content={result} />
-            </CardContent>
-          </Card>
+          {/* 액션 버튼 */}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={handleCopy}>
+              <Copy className="w-4 h-4" />
+              복사
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownloadMd}>
+              <Download className="w-4 h-4" />
+              MD
+            </Button>
+            <Button variant="outline" size="sm" onClick={handleDownloadPdf}>
+              <FileDown className="w-4 h-4" />
+              PDF
+            </Button>
+          </div>
+
+          {/* 본문 + TOC */}
+          <MarkdownPreview ref={previewRef} content={result} />
           <div className="flex justify-center">
             <Button variant="outline" onClick={handleReset}>
               <RotateCcw className="w-4 h-4" />

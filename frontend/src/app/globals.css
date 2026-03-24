@@ -4,6 +4,7 @@
 @variant dark (&:where(.dark, .dark *));
 
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 :root {
   --font-size: 16px;
@@ -102,5 +103,14 @@
 
   [data-slot="card"] {
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  }
+
+  /* prose 인라인 코드: 백틱 제거 + 스타일링 */
+  .prose code:not(pre code) {
+    @apply bg-muted px-1.5 py-0.5 rounded text-sm font-mono;
+  }
+  .prose code:not(pre code)::before,
+  .prose code:not(pre code)::after {
+    content: none !important;
   }
 }
