@@ -1,5 +1,5 @@
-[![Backend](https://img.shields.io/github/v/tag/virtue14/notebot?filter=notebot-backend-v*&sort=semver&label=backend&color=3776ab)](https://github.com/virtue14/notebot/releases?q=notebot-backend)
-[![Frontend](https://img.shields.io/github/v/tag/virtue14/notebot?filter=notebot-frontend-v*&sort=semver&label=frontend&color=000000)](https://github.com/virtue14/notebot/releases?q=notebot-frontend)
+[![Backend](https://img.shields.io/github/v/tag/virtue14/notebot?filter=notebot-backend-v*&sort=semver&label=backend&color=009688&logo=fastapi&logoColor=white)](https://github.com/virtue14/notebot/releases?q=notebot-backend)
+[![Frontend](https://img.shields.io/github/v/tag/virtue14/notebot?filter=notebot-frontend-v*&sort=semver&label=frontend&color=0070F3&logo=nextdotjs&logoColor=white)](https://github.com/virtue14/notebot/releases?q=notebot-frontend)
 
 ## 누구를 위한 서비스인가
 
