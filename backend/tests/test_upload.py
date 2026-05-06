@@ -73,6 +73,48 @@ class TestUploadFile:
         assert response.status_code == 400
         assert "허용되지 않는 파일 타입" in response.json()["detail"]
 
+    def test_upload_webm_with_correct_mime(self, client: TestClient):
+        file = io.BytesIO(b"fake webm data")
+        response = client.post(
+            "/api/v1/upload/",
+            files={"file": ("clip.webm", file, "video/webm")},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["mime_type"] == "video/webm"
+
+    def test_upload_octet_stream_with_allowed_extension(self, client: TestClient):
+        """일부 OS/브라우저가 .webm을 octet-stream으로 추론해도 확장자로 통과시킨다."""
+        file = io.BytesIO(b"fake webm data")
+        response = client.post(
+            "/api/v1/upload/",
+            files={"file": ("clip.webm", file, "application/octet-stream")},
+        )
+
+        assert response.status_code == 200
+        assert response.json()["file_name"] == "clip.webm"
+
+    def test_reject_octet_stream_with_disallowed_extension(self, client: TestClient):
+        file = io.BytesIO(b"binary blob")
+        response = client.post(
+            "/api/v1/upload/",
+            files={"file": ("malware.exe", file, "application/octet-stream")},
+        )
+
+        assert response.status_code == 400
+        assert "허용되지 않는 파일 타입" in response.json()["detail"]
+
+    def test_reject_audio_mime_with_disallowed_extension(self, client: TestClient):
+        """위조된 MIME으로 비-미디어 확장자가 통과되지 않는다."""
+        file = io.BytesIO(b"binary blob")
+        response = client.post(
+            "/api/v1/upload/",
+            files={"file": ("malware.exe", file, "audio/mpeg")},
+        )
+
+        assert response.status_code == 400
+        assert "허용되지 않는 파일" in response.json()["detail"]
+
     def test_reject_oversized_file(self, client: TestClient):
         from app.config import settings
 

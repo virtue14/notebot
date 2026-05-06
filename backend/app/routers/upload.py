@@ -13,6 +13,12 @@ from app.schemas.upload import UploadResponse, UploadStatusResponse
 router = APIRouter(prefix="/api/v1/upload", tags=["upload"])
 
 
+OCTET_STREAM = "application/octet-stream"
+
+AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg", ".opus", ".wma"}
+VIDEO_EXTENSIONS = {".mp4", ".mov", ".mkv", ".webm", ".avi", ".wmv", ".3gp"}
+
+
 def _is_allowed_mime(mime_type: str) -> bool:
     """MIME 타입이 허용 목록에 포함되는지 와일드카드 패턴으로 검사한다."""
     return any(
@@ -21,9 +27,35 @@ def _is_allowed_mime(mime_type: str) -> bool:
     )
 
 
-def _is_stt_target(mime_type: str) -> bool:
-    """오디오 또는 비디오 MIME 타입인지 확인한다."""
-    return mime_type.startswith("audio/") or mime_type.startswith("video/")
+def _extension_of(filename: str) -> str:
+    """파일명에서 소문자 확장자를 반환한다."""
+    return Path(filename).suffix.lower()
+
+
+def _is_allowed_extension(filename: str) -> bool:
+    """확장자가 화이트리스트에 포함되는지 검사한다."""
+    return _extension_of(filename) in {ext.lower() for ext in settings.ALLOWED_EXTENSIONS}
+
+
+def _is_upload_allowed(mime_type: str | None, filename: str | None) -> bool:
+    """MIME과 확장자를 함께 검증한다.
+
+    Why: MIME 단독 검증은 위조에 취약하고, 일부 OS/브라우저는 .webm 등을
+    octet-stream으로 추론한다. 확장자 화이트리스트로 1차 방어한다.
+    """
+    if not filename or not _is_allowed_extension(filename):
+        return False
+    if not mime_type or mime_type == OCTET_STREAM:
+        return True
+    return _is_allowed_mime(mime_type)
+
+
+def _is_stt_target(mime_type: str | None, filename: str | None) -> bool:
+    """오디오 또는 비디오 파일인지 확인한다 (MIME 또는 확장자 기준)."""
+    if mime_type and (mime_type.startswith("audio/") or mime_type.startswith("video/")):
+        return True
+    ext = _extension_of(filename or "")
+    return ext in AUDIO_EXTENSIONS or ext in VIDEO_EXTENSIONS
 
 
 @router.post("/", response_model=UploadResponse)
@@ -33,10 +65,10 @@ async def upload_file(
     db: Session = Depends(get_db),
 ):
     """파일을 업로드하고 메타데이터를 DB에 저장한다."""
-    if not file.content_type or not _is_allowed_mime(file.content_type):
+    if not _is_upload_allowed(file.content_type, file.filename):
         raise HTTPException(
             status_code=400,
-            detail=f"허용되지 않는 파일 타입입니다: {file.content_type}",
+            detail=f"허용되지 않는 파일 타입입니다: {file.content_type or '알 수 없음'}",
         )
 
     chunks = []
@@ -74,7 +106,7 @@ async def upload_file(
     db.commit()
     db.refresh(upload)
 
-    if _is_stt_target(upload.mime_type):
+    if _is_stt_target(upload.mime_type, upload.file_name):
         from app.services.stt import run_stt_task
 
         background_tasks.add_task(run_stt_task, upload.id)

@@ -12,6 +12,11 @@ class Settings(BaseSettings):
         "text/plain",
         "application/pdf",
     ]
+    ALLOWED_EXTENSIONS: list[str] = [
+        ".mp3", ".wav", ".m4a", ".aac", ".flac", ".ogg", ".opus", ".wma",
+        ".mp4", ".mov", ".mkv", ".webm", ".avi", ".wmv", ".3gp",
+        ".txt", ".pdf",
+    ]
     MAX_UPLOAD_SIZE: int = 100 * 1024 * 1024  # 100MB
     WHISPER_MODEL: str = "base"
     WHISPER_DEVICE: str = "cpu"
