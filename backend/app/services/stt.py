@@ -30,7 +30,20 @@ def get_model() -> WhisperModel:
 def transcribe_file(file_path: str) -> str:
     """파일 경로를 받아 STT 변환 텍스트를 반환한다."""
     model = get_model()
-    segments, _ = model.transcribe(file_path, beam_size=5)
+    transcribe_kwargs: dict = {
+        "language": settings.STT_LANGUAGE,
+        "beam_size": 5,
+        "initial_prompt": settings.STT_DEFAULT_INITIAL_PROMPT,
+        "compression_ratio_threshold": 2.4,
+        "no_speech_threshold": 0.6,
+        "temperature": [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+    }
+    if settings.STT_VAD_ENABLED:
+        transcribe_kwargs["vad_filter"] = True
+        transcribe_kwargs["vad_parameters"] = {
+            "min_silence_duration_ms": settings.STT_VAD_MIN_SILENCE_MS,
+        }
+    segments, _ = model.transcribe(file_path, **transcribe_kwargs)
     text = " ".join(segment.text.strip() for segment in segments)
     if not text.strip():
         raise ValueError("STT 변환 결과가 비어 있습니다.")

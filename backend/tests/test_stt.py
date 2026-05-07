@@ -24,7 +24,17 @@ class TestTranscribeFile:
         result = transcribe_file("/fake/path.mp3")
 
         assert result == "안녕하세요 반갑습니다"
-        mock_model.transcribe.assert_called_once_with("/fake/path.mp3", beam_size=5)
+        mock_model.transcribe.assert_called_once()
+        args, kwargs = mock_model.transcribe.call_args
+        assert args == ("/fake/path.mp3",)
+        assert kwargs["language"] == "ko"
+        assert kwargs["beam_size"] == 5
+        assert kwargs["vad_filter"] is True
+        assert "vad_parameters" in kwargs
+        assert kwargs["initial_prompt"]  # 비어있지 않음
+        assert kwargs["temperature"] == [0.0, 0.2, 0.4, 0.6, 0.8, 1.0]
+        assert kwargs["compression_ratio_threshold"] == 2.4
+        assert kwargs["no_speech_threshold"] == 0.6
 
     @patch("app.services.stt.get_model")
     def test_transcribe_empty_raises(self, mock_get_model):
